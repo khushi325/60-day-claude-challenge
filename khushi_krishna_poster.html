@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khushi Krishna – AI Personality Profile</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --neon-blue: #00c8ff;
+    --neon-purple: #a855f7;
+    --neon-pink: #ec4899;
+    --deep-bg: #03060f;
+    --panel-bg: rgba(10,20,50,0.55);
+    --panel-border: rgba(0,200,255,0.18);
+    --text-primary: #e8f4ff;
+    --text-muted: rgba(200,230,255,0.6);
+    --glow-blue: 0 0 18px rgba(0,200,255,0.55);
+    --glow-purple: 0 0 18px rgba(168,85,247,0.5);
+  }
+
+  body {
+    background: var(--deep-bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+  }
+
+  .poster {
+    width: 900px;
+    background: radial-gradient(ellipse at 20% 10%, rgba(0,80,180,0.22) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 80%, rgba(120,0,220,0.18) 0%, transparent 55%),
+                linear-gradient(160deg, #03060f 0%, #080d1e 40%, #05091a 100%);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0,200,255,0.15);
+    border-radius: 2px;
+    box-shadow: 0 0 80px rgba(0,120,255,0.15), 0 0 200px rgba(100,0,200,0.1);
+  }
+
+  /* Background grid lines */
+  .poster::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Animated corner accents */
+  .corner { position: absolute; width: 60px; height: 60px; z-index: 2; }
+  .corner::before, .corner::after { content: ''; position: absolute; background: var(--neon-blue); }
+  .corner::before { width: 100%; height: 2px; top: 0; left: 0; }
+  .corner::after  { width: 2px; height: 100%; top: 0; left: 0; }
+  .corner.tr { top: 0; right: 0; transform: scaleX(-1); }
+  .corner.bl { bottom: 0; left: 0; transform: scaleY(-1); }
+  .corner.br { bottom: 0; right: 0; transform: scale(-1); }
+  .corner.tl { top: 0; left: 0; }
+
+  /* Scan line ambient */
+  .scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(0,200,255,0.018) 0px, rgba(0,200,255,0.018) 1px, transparent 1px, transparent 4px);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: relative;
+    z-index: 5;
+    padding: 28px 36px 0;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    justify-content: space-between;
+  }
+
+  .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,200,255,0.1);
+    border: 1px solid rgba(0,200,255,0.3);
+    border-radius: 2px;
+    padding: 3px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--neon-blue);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .ai-badge::before { content: '●'; font-size: 8px; animation: pulse 1.8s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .poster-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 36px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, #ffffff 0%, var(--neon-blue) 50%, var(--neon-purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(0 0 20px rgba(0,200,255,0.4));
+  }
+
+  .poster-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    color: var(--neon-purple);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Profile type badge top right */
+  .profile-type {
+    text-align: right;
+  }
+  .profile-type .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+  .profile-type .value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--neon-purple);
+    letter-spacing: 1px;
+    margin-top: 2px;
+    filter: drop-shadow(0 0 8px rgba(168,85,247,0.6));
+  }
+
+  /* ── HERO SECTION ── */
+  .hero {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 22px 36px 16px;
+  }
+
+  /* Photo frame */
+  .photo-frame {
+    position: relative;
+    flex-shrink: 0;
+    width: 190px;
+    height: 230px;
+  }
+
+  .photo-glow {
+    position: absolute;
+    inset: -12px;
+    background: radial-gradient(ellipse, rgba(0,200,255,0.3) 0%, rgba(168,85,247,0.15) 50%, transparent 70%);
+    filter: blur(16px);
+    border-radius: 4px;
+    z-index: 0;
+  }
+
+  .photo-border {
+    position: absolute;
+    inset: -2px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple), var(--neon-blue));
+    background-size: 200% 200%;
+    animation: borderShift 4s linear infinite;
+    z-index: 1;
+    padding: 2px;
+  }
+  @keyframes borderShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+  .photo-inner {
+    position: relative;
+    z-index: 2;
+    width: 190px;
+    height: 230px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #080d1e;
+  }
+
+  .photo-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    filter: contrast(1.05) saturate(0.9);
+  }
+
+  /* HUD overlays on photo */
+  .photo-hud {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(3,6,15,0.85));
+    padding: 12px 10px 8px;
+    z-index: 3;
+  }
+  .hud-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--neon-blue);
+    letter-spacing: 2px;
+    filter: drop-shadow(0 0 6px rgba(0,200,255,0.8));
+  }
+  .hud-role {
+    font-size: 8px;
+    color: var(--neon-purple);
+    letter-spacing: 1px;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .photo-corner-tl, .photo-corner-tr, .photo-corner-bl, .photo-corner-br {
+    position: absolute;
+    width: 14px; height: 14px;
+    z-index: 4;
+  }
+  .photo-corner-tl { top: 4px; left: 4px; border-top: 2px solid var(--neon-blue); border-left: 2px solid var(--neon-blue); }
+  .photo-corner-tr { top: 4px; right: 4px; border-top: 2px solid var(--neon-blue); border-right: 2px solid var(--neon-blue); }
+  .photo-corner-bl { bottom: 4px; left: 4px; border-bottom: 2px solid var(--neon-purple); border-left: 2px solid var(--neon-purple); }
+  .photo-corner-br { bottom: 4px; right: 4px; border-bottom: 2px solid var(--neon-purple); border-right: 2px solid var(--neon-purple); }
+
+  /* Hero right */
+  .hero-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 6px;
+  }
+
+  .tagline {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-left: 3px solid var(--neon-blue);
+    border-radius: 2px;
+    padding: 12px 16px;
+    font-style: italic;
+    font-size: 13px;
+    color: rgba(220,240,255,0.9);
+    line-height: 1.6;
+    position: relative;
+    backdrop-filter: blur(12px);
+  }
+  .tagline::before {
+    content: '"';
+    font-size: 40px;
+    color: var(--neon-blue);
+    opacity: 0.25;
+    position: absolute;
+    top: -6px; left: 10px;
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .stat-card {
+    flex: 1;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 2px;
+    padding: 10px 12px;
+    backdrop-filter: blur(12px);
+    text-align: center;
+  }
+  .stat-card .s-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+  .stat-card .s-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 3px;
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .current-focus {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 2px;
+    padding: 10px 14px;
+    backdrop-filter: blur(12px);
+  }
+  .focus-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--neon-blue);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .focus-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .focus-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    padding: 3px 8px;
+    border: 1px solid rgba(0,200,255,0.3);
+    border-radius: 2px;
+    color: var(--neon-blue);
+    background: rgba(0,200,255,0.07);
+    letter-spacing: 1px;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    position: relative;
+    z-index: 5;
+    margin: 0 36px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--neon-blue), var(--neon-purple), transparent);
+    opacity: 0.4;
+  }
+
+  /* ── GRID SECTIONS ── */
+  .sections-grid {
+    position: relative;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    padding: 16px 36px;
+  }
+
+  .panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 2px;
+    padding: 14px 15px;
+    backdrop-filter: blur(14px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+    opacity: 0.7;
+  }
+
+  .panel.span2 { grid-column: span 2; }
+  .panel.span3 { grid-column: span 3; }
+
+  .panel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--neon-blue);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    filter: drop-shadow(0 0 5px rgba(0,200,255,0.4));
+  }
+  .panel-title .num {
+    font-size: 7px;
+    color: var(--neon-purple);
+    border: 1px solid var(--neon-purple);
+    border-radius: 1px;
+    padding: 1px 4px;
+    opacity: 0.8;
+  }
+
+  .panel ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .panel ul li {
+    font-size: 10px;
+    color: rgba(210,235,255,0.82);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.45;
+  }
+  .panel ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--neon-blue);
+    font-weight: 700;
+  }
+
+  /* Strengths / Weaknesses two-column */
+  .sw-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .sw-col-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    margin-bottom: 7px;
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+  .sw-col-title.strength {
+    color: #4ade80;
+    background: rgba(74,222,128,0.08);
+    border: 1px solid rgba(74,222,128,0.25);
+  }
+  .sw-col-title.weakness {
+    color: #f472b6;
+    background: rgba(244,114,182,0.08);
+    border: 1px solid rgba(244,114,182,0.25);
+  }
+  .sw-item {
+    font-size: 10px;
+    color: rgba(210,235,255,0.82);
+    padding: 3px 0 3px 18px;
+    position: relative;
+    line-height: 1.4;
+  }
+  .sw-item::before {
+    position: absolute; left: 0; font-size: 10px;
+  }
+  .strength-item::before { content: '✓'; color: #4ade80; }
+  .weakness-item::before { content: '✗'; color: #f472b6; }
+
+  /* Journey timeline */
+  .journey {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .journey-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+  }
+  .journey-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--neon-blue);
+    box-shadow: var(--glow-blue);
+    flex-shrink: 0;
+  }
+  .journey-line {
+    width: 2px; height: 12px;
+    background: linear-gradient(var(--neon-blue), var(--neon-purple));
+    margin-left: 3px;
+    opacity: 0.4;
+  }
+  .journey-text {
+    font-size: 10px;
+    color: rgba(210,235,255,0.85);
+    font-weight: 500;
+  }
+
+  /* Goals */
+  .goals-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 12px;
+  }
+  .goal-item {
+    font-size: 10px;
+    color: rgba(210,235,255,0.82);
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.4;
+  }
+  .goal-item::before {
+    content: '✓';
+    position: absolute; left: 0;
+    color: var(--neon-purple);
+  }
+
+  /* Career paths cloud */
+  .careers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .career-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    padding: 4px 10px;
+    border: 1px solid rgba(168,85,247,0.35);
+    border-radius: 2px;
+    color: var(--neon-purple);
+    background: rgba(168,85,247,0.07);
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+
+  /* Learning style */
+  .learning-flow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .lf-step {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--neon-blue);
+    padding: 3px 8px;
+    border: 1px solid rgba(0,200,255,0.3);
+    border-radius: 1px;
+    background: rgba(0,200,255,0.06);
+  }
+  .lf-arrow { color: var(--neon-purple); font-size: 14px; }
+
+  /* AI TYPE panel */
+  .ai-type-big {
+    text-align: center;
+    padding: 8px 0;
+  }
+  .ai-type-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 12px rgba(0,200,255,0.4));
+    margin-bottom: 6px;
+  }
+  .ai-type-subtitle {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .hashtags {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .hashtag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--neon-blue);
+    border: 1px solid rgba(0,200,255,0.2);
+    border-radius: 2px;
+    padding: 2px 7px;
+    background: rgba(0,200,255,0.05);
+  }
+
+  /* Bio panel */
+  .bio-text {
+    font-size: 11px;
+    line-height: 1.7;
+    color: rgba(215,235,255,0.85);
+    font-style: italic;
+    border-left: 2px solid var(--neon-purple);
+    padding-left: 14px;
+  }
+
+  /* ── BOTTOM QUOTE ── */
+  .bottom-section {
+    position: relative;
+    z-index: 5;
+    padding: 4px 36px 24px;
+  }
+
+  .bottom-quote {
+    background: linear-gradient(90deg, rgba(0,200,255,0.06), rgba(168,85,247,0.06));
+    border: 1px solid rgba(0,200,255,0.15);
+    border-radius: 2px;
+    padding: 18px 28px;
+    text-align: center;
+    position: relative;
+  }
+  .bottom-quote::before, .bottom-quote::after {
+    content: '';
+    position: absolute;
+    width: 40px; height: 2px;
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+    top: 50%; transform: translateY(-50%);
+  }
+  .bottom-quote::before { left: 0; }
+  .bottom-quote::after  { right: 0; }
+
+  .quote-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    line-height: 1.8;
+    background: linear-gradient(90deg, #a8d8ff, var(--neon-blue), var(--neon-purple), #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 10px rgba(0,200,255,0.3));
+  }
+
+  /* footer bar */
+  .footer-bar {
+    position: relative;
+    z-index: 5;
+    height: 3px;
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple), var(--neon-pink), var(--neon-blue));
+    background-size: 200% 100%;
+    animation: flowRight 3s linear infinite;
+  }
+  @keyframes flowRight { 0%{background-position:0% 0%} 100%{background-position:200% 0%} }
+
+  /* ── what makes me different mini-bar ── */
+  .diff-items {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .diff-item {
+    font-size: 10px;
+    color: rgba(210,235,255,0.82);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.4;
+  }
+  .diff-item::before { content: '◈'; position: absolute; left: 0; color: var(--neon-pink); font-size: 9px; }
+
+  /* improve items */
+  .improve-items { display: flex; flex-direction: column; gap: 5px; }
+  .improve-item {
+    font-size: 10px;
+    color: rgba(210,235,255,0.82);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.4;
+  }
+  .improve-item::before { content: '→'; position: absolute; left: 0; color: var(--neon-purple); }
+
+  /* Working style mini-progress bars */
+  .ws-item { margin-bottom: 7px; }
+  .ws-label { font-size: 9px; color: rgba(200,230,255,0.7); margin-bottom: 3px; }
+  .ws-bar { height: 3px; border-radius: 2px; background: rgba(255,255,255,0.08); overflow: hidden; }
+  .ws-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); }
+</style>
+</head>
+<body>
+<div class="poster">
+  <!-- Corner accents -->
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+  <div class="scanlines"></div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <span class="ai-badge">AI Personality Profile · 2026</span>
+      <div class="poster-title">KHUSHI KRISHNA</div>
+      <div class="poster-subtitle">Future AI Engineer &nbsp;•&nbsp; Problem Solver &nbsp;•&nbsp; Builder</div>
+    </div>
+    <div class="profile-type">
+      <div class="label">User Type</div>
+      <div class="value">THE STRATEGIC<br>LEARNER</div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <!-- Photo -->
+    <div class="photo-frame">
+      <div class="photo-glow"></div>
+      <div class="photo-border">
+        <div class="photo-inner">
+          <img src="/mnt/user-data/uploads/WhatsApp_Image_2026-06-19_at_9_55_07_AM.jpeg" alt="Khushi Krishna">
+          <div class="photo-hud">
+            <div class="hud-name">KHUSHI KRISHNA</div>
+            <div class="hud-role">B.Tech CSE · AI Explorer</div>
+          </div>
+          <div class="photo-corner-tl"></div>
+          <div class="photo-corner-tr"></div>
+          <div class="photo-corner-bl"></div>
+          <div class="photo-corner-br"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right info -->
+    <div class="hero-right">
+      <div class="tagline">
+        Curious mind. Consistent learner. Building skills today for a future that creates impact.
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="s-label">Mode</div>
+          <div class="s-value">Builder</div>
+        </div>
+        <div class="stat-card">
+          <div class="s-label">Drive</div>
+          <div class="s-value">Impact</div>
+        </div>
+        <div class="stat-card">
+          <div class="s-label">Goal</div>
+          <div class="s-value">AI Eng</div>
+        </div>
+      </div>
+
+      <div class="current-focus">
+        <div class="focus-label">// Current Focus Stack</div>
+        <div class="focus-tags">
+          <span class="focus-tag">Python</span>
+          <span class="focus-tag">Java</span>
+          <span class="focus-tag">DSA</span>
+          <span class="focus-tag">Machine Learning</span>
+          <span class="focus-tag">AI Tools</span>
+          <span class="focus-tag">Communication</span>
+          <span class="focus-tag">Internship Prep</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SECTIONS GRID -->
+  <div class="sections-grid">
+
+    <!-- Section 1: Working Style -->
+    <div class="panel">
+      <div class="panel-title"><span class="num">01</span> AI Working Style</div>
+      <div>
+        <div class="ws-item">
+          <div class="ws-label">AI as Tutor & Mentor</div>
+          <div class="ws-bar"><div class="ws-fill" style="width:92%"></div></div>
+        </div>
+        <div class="ws-item">
+          <div class="ws-label">Deep Follow-Up Questions</div>
+          <div class="ws-bar"><div class="ws-fill" style="width:88%"></div></div>
+        </div>
+        <div class="ws-item">
+          <div class="ws-label">Practical Examples First</div>
+          <div class="ws-bar"><div class="ws-fill" style="width:85%"></div></div>
+        </div>
+        <div class="ws-item">
+          <div class="ws-label">Concepts → Projects</div>
+          <div class="ws-bar"><div class="ws-fill" style="width:90%"></div></div>
+        </div>
+        <div class="ws-item">
+          <div class="ws-label">Academic + Career Blend</div>
+          <div class="ws-bar"><div class="ws-fill" style="width:87%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: AI Type -->
+    <div class="panel">
+      <div class="panel-title"><span class="num">02</span> AI User Type</div>
+      <div class="ai-type-big">
+        <div class="ai-type-label">THE AI EXPLORER</div>
+        <div class="ai-type-subtitle">Turning Curiosity Into Capability</div>
+        <div style="font-size:10px;color:rgba(200,230,255,0.7);margin-bottom:10px;line-height:1.5;">
+          AI as mentor · research assistant<br>study partner · growth accelerator
+        </div>
+        <div class="hashtags">
+          <span class="hashtag">#Builder</span>
+          <span class="hashtag">#Explorer</span>
+          <span class="hashtag">#Learner</span>
+          <span class="hashtag">#Solver</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Journey -->
+    <div class="panel">
+      <div class="panel-title"><span class="num">03</span> Journey So Far</div>
+      <div class="journey">
+        <div class="journey-step"><div class="journey-dot"></div><div class="journey-text">B.Tech CSE Student</div></div>
+        <div class="journey-line"></div>
+        <div class="journey-step"><div class="journey-dot" style="background:var(--neon-purple)"></div><div class="journey-text">Passionate Learner</div></div>
+        <div class="journey-line"></div>
+        <div class="journey-step"><div class="journey-dot"></div><div class="journey-text">AI & Tech Enthusiast</div></div>
+        <div class="journey-line"></div>
+        <div class="journey-step"><div class="journey-dot" style="background:var(--neon-purple)"></div><div class="journey-text">Problem Solver</div></div>
+        <div class="journey-line"></div>
+        <div class="journey-step"><div class="journey-dot" style="background:var(--neon-pink);box-shadow:0 0 10px rgba(236,72,153,0.6)"></div><div class="journey-text" style="color:var(--neon-blue);font-weight:600;">Future AI Engineer</div></div>
+      </div>
+    </div>
+
+    <!-- Section 2: Strengths & Weaknesses -->
+    <div class="panel span2">
+      <div class="panel-title"><span class="num">04</span> Strengths & Weaknesses</div>
+      <div class="sw-grid">
+        <div>
+          <div class="sw-col-title strength">STRENGTHS</div>
+          <div class="sw-item strength-item">Curious learner</div>
+          <div class="sw-item strength-item">Consistent and hardworking</div>
+          <div class="sw-item strength-item">Strong problem-solving mindset</div>
+          <div class="sw-item strength-item">Goal-oriented approach</div>
+          <div class="sw-item strength-item">Open to feedback</div>
+          <div class="sw-item strength-item">Practical thinker</div>
+        </div>
+        <div>
+          <div class="sw-col-title weakness">WEAKNESSES</div>
+          <div class="sw-item weakness-item">Sometimes overthinks decisions</div>
+          <div class="sw-item weakness-item">Needs more industry exposure</div>
+          <div class="sw-item weakness-item">Too much learning before building</div>
+          <div class="sw-item weakness-item">Advanced DSA needs strengthening</div>
+          <div class="sw-item weakness-item">Public speaking confidence</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Learning Style -->
+    <div class="panel">
+      <div class="panel-title"><span class="num">05</span> Learning Style</div>
+      <div class="learning-flow">
+        <span class="lf-step">LEARN</span>
+        <span class="lf-arrow">→</span>
+        <span class="lf-step">PRACTICE</span>
+        <span class="lf-arrow">→</span>
+        <span class="lf-step">APPLY</span>
+        <span class="lf-arrow">→</span>
+        <span class="lf-step">IMPROVE</span>
+      </div>
+      <ul>
+        <li>Step-by-step explanations preferred</li>
+        <li>Research before decisions</li>
+        <li>Understanding over memorization</li>
+        <li>Project-based learning</li>
+        <li>Long-term growth focus</li>
+      </ul>
+    </div>
+
+    <!-- What makes me different -->
+    <div class="panel">
+      <div class="panel-title"><span class="num">06</span> What Makes Me Different</div>
+      <div class="diff-items">
+        <div class="diff-item">Genuinely want to understand how things work</div>
+        <div class="diff-item">Combine technical learning with career growth</div>
+        <div class="diff-item">Ask practical, targeted questions</div>
+        <div class="diff-item">Persistent when solving hard problems</div>
+        <div class="diff-item">Build opportunities through skills</div>
+        <div class="diff-item">Use AI as a partner, not a shortcut</div>
+      </div>
+    </div>
+
+    <!-- Career Paths -->
+    <div class="panel">
+      <div class="panel-title"><span class="num">07</span> Future Career Paths</div>
+      <div class="careers">
+        <span class="career-tag">AI Engineer</span>
+        <span class="career-tag">ML Engineer</span>
+        <span class="career-tag">Software Engineer</span>
+        <span class="career-tag">Data Scientist</span>
+        <span class="career-tag">Research Engineer</span>
+        <span class="career-tag">AI Product Builder</span>
+        <span class="career-tag">Tech Consultant</span>
+        <span class="career-tag">Tech Entrepreneur</span>
+      </div>
+    </div>
+
+    <!-- Goals -->
+    <div class="panel">
+      <div class="panel-title"><span class="num">08</span> Goals Notebook</div>
+      <div class="goals-grid">
+        <div class="goal-item">Master DSA</div>
+        <div class="goal-item">Build AI Projects</div>
+        <div class="goal-item">Get Internship</div>
+        <div class="goal-item">Improve Coding</div>
+        <div class="goal-item">GitHub Contributions</div>
+        <div class="goal-item">Create Tech Impact</div>
+      </div>
+    </div>
+
+    <!-- What to Improve -->
+    <div class="panel">
+      <div class="panel-title"><span class="num">09</span> What I Need to Improve</div>
+      <div class="improve-items">
+        <div class="improve-item">Build more real-world projects</div>
+        <div class="improve-item">Consistent GitHub contributions</div>
+        <div class="improve-item">Strengthen DSA & problem-solving</div>
+        <div class="improve-item">Gain internship experience</div>
+        <div class="improve-item">Learn cloud technologies</div>
+        <div class="improve-item">Stronger portfolio presence</div>
+      </div>
+    </div>
+
+    <!-- Bio -->
+    <div class="panel span3">
+      <div class="panel-title"><span class="num">10</span> Cinematic Bio</div>
+      <div class="bio-text">
+        Khushi Krishna is a determined future AI engineer driven by curiosity and consistency. She transforms questions into knowledge and knowledge into solutions. Whether solving coding problems, building AI projects, or preparing for future opportunities, she approaches every challenge with patience, persistence, and purpose — building the foundation for a meaningful career that creates lasting impact.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Quote -->
+  <div class="bottom-section">
+    <div class="bottom-quote">
+      <div class="quote-text">
+        "Small steps today. &nbsp;Strong foundation tomorrow. &nbsp;Limitless impact in the future."
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bar"></div>
+</div>
+</body>
+</html>
