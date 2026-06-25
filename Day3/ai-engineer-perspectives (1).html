@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Engineer - 3 Perspectives</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #07070D;
+    font-family: 'Courier New', monospace;
+    padding: 36px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  /* HEADER */
+  .header { text-align: center; max-width: 900px; }
+  .header-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 4px 14px;
+    font-size: 11px;
+    color: #94A3B8;
+    letter-spacing: 0.15em;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+  .header h1 {
+    font-size: 34px;
+    font-weight: 900;
+    color: #F8FAFC;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .header p { color: #64748B; font-size: 13px; letter-spacing: 0.02em; }
+
+  /* CARDS GRID */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    width: 100%;
+    max-width: 980px;
+  }
+
+  .card {
+    border-radius: 16px;
+    padding: 24px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-amber { background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.25); }
+  .card-violet { background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.25); }
+  .card-cyan   { background: rgba(6,182,212,0.06);  border: 1px solid rgba(6,182,212,0.25); }
+
+  .card-top-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .bar-amber { background: linear-gradient(90deg, transparent, #F59E0B, transparent); }
+  .bar-violet { background: linear-gradient(90deg, transparent, #A855F7, transparent); }
+  .bar-cyan   { background: linear-gradient(90deg, transparent, #06B6D4, transparent); }
+
+  .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    border-radius: 20px; padding: 3px 10px;
+    margin-bottom: 14px;
+  }
+  .tag-amber { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); }
+  .tag-violet { background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.3); }
+  .tag-cyan   { background: rgba(6,182,212,0.12);  border: 1px solid rgba(6,182,212,0.3); }
+
+  .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .dot-amber  { background: #F59E0B; box-shadow: 0 0 8px #F59E0B; }
+  .dot-violet { background: #A855F7; box-shadow: 0 0 8px #A855F7; }
+  .dot-cyan   { background: #06B6D4; box-shadow: 0 0 8px #06B6D4; }
+
+  .tag-text { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .text-amber  { color: #F59E0B; }
+  .text-violet { color: #A855F7; }
+  .text-cyan   { color: #06B6D4; }
+
+  .card-title { font-size: 17px; font-weight: 900; color: #F1F5F9; margin-bottom: 3px; }
+  .card-sub   { font-size: 11px; color: #64748B; margin-bottom: 6px; letter-spacing: 0.05em; }
+  .card-focus { font-size: 11px; font-weight: 700; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+  .points { display: flex; flex-direction: column; gap: 11px; margin-bottom: 18px; }
+  .point  { display: flex; gap: 10px; align-items: flex-start; }
+  .point-icon { font-size: 10px; font-weight: 800; min-width: 20px; margin-top: 1px; opacity: 0.8; }
+  .point-label { font-size: 12px; font-weight: 700; color: #E2E8F0; margin-bottom: 2px; }
+  .point-desc  { font-size: 10.5px; color: #64748B; line-height: 1.5; }
+
+  .verdict-box { border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
+  .verdict-amber  { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+  .verdict-violet { background: rgba(168,85,247,0.08); border: 1px solid rgba(168,85,247,0.2); }
+  .verdict-cyan   { background: rgba(6,182,212,0.08);  border: 1px solid rgba(6,182,212,0.2); }
+
+  .verdict-label { font-size: 10px; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .verdict-text  { font-size: 11px; color: #CBD5E1; line-height: 1.6; }
+
+  .cta { font-size: 11px; font-weight: 700; text-align: center; padding: 8px; border-radius: 6px; letter-spacing: 0.05em; }
+  .cta-amber  { color: #F59E0B; background: rgba(245,158,11,0.08); }
+  .cta-violet { color: #A855F7; background: rgba(168,85,247,0.08); }
+  .cta-cyan   { color: #06B6D4; background: rgba(6,182,212,0.08); }
+
+  /* BOTTOM SECTIONS */
+  .bottom-box {
+    width: 100%; max-width: 980px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 20px 24px;
+  }
+  .section-label {
+    font-size: 11px; color: #94A3B8;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    font-weight: 700; margin-bottom: 14px;
+  }
+  .skills-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+  .skill-tag {
+    font-size: 11px; font-weight: 700;
+    border-radius: 6px; padding: 4px 12px;
+  }
+
+  .timeline-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+  .t-cell {
+    text-align: center; padding: 10px 6px;
+    border-radius: 8px;
+  }
+  .t-month { font-size: 10px; font-weight: 800; margin-bottom: 4px; letter-spacing: 0.05em; }
+  .t-label { font-size: 11px; color: #94A3B8; font-weight: 600; }
+
+  .footer {
+    font-size: 11px; color: #334155;
+    letter-spacing: 0.05em; padding-bottom: 8px; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-tag">3 Perspectives · 1 Goal · AI Engineering Internship</div>
+  <h1>How to Become an AI Engineer</h1>
+  <p>Same goal. Three radically different lenses.</p>
+</div>
+
+<!-- CARDS -->
+<div class="cards">
+
+  <!-- CARD 1: STUDENT -->
+  <div class="card card-amber">
+    <div class="card-top-bar bar-amber"></div>
+    <div class="tag tag-amber">
+      <div class="dot dot-amber"></div>
+      <span class="tag-text text-amber">12-Month Plan</span>
+    </div>
+    <div class="card-title">🎓 Student Roadmap</div>
+    <div class="card-sub">The Learning Path</div>
+    <div class="card-focus text-amber">↳ What to learn & when</div>
+    <div class="points">
+      <div class="point">
+        <span class="point-icon text-amber">01</span>
+        <div><div class="point-label">Python + DSA First</div><div class="point-desc">Master Python deeply before touching AI frameworks</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-amber">02</span>
+        <div><div class="point-label">ML → DL → LLMs</div><div class="point-desc">Follow the learning hierarchy, don't skip foundations</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-amber">03</span>
+        <div><div class="point-label">Build 3–4 Projects</div><div class="point-desc">RAG chatbot, AI agent, deployed product, flagship</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-amber">04</span>
+        <div><div class="point-label">Certifications Help</div><div class="point-desc">DeepLearning.AI, Hugging Face NLP course</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-amber">05</span>
+        <div><div class="point-label">Apply at Month 9</div><div class="point-desc">Don't wait until you feel 'ready' — you never will</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-amber">06</span>
+        <div><div class="point-label">LeetCode in Parallel</div><div class="point-desc">3 problems/day minimum, every week, no excuses</div></div>
+      </div>
+    </div>
+    <div class="verdict-box verdict-amber">
+      <div class="verdict-label text-amber">Core Insight</div>
+      <div class="verdict-text">Focus on learning systematically and building consistently.</div>
+    </div>
+    <div class="cta cta-amber">⚡ Start today. Not Monday.</div>
+  </div>
+
+  <!-- CARD 2: FOUNDER -->
+  <div class="card card-violet">
+    <div class="card-top-bar bar-violet"></div>
+    <div class="tag tag-violet">
+      <div class="dot dot-violet"></div>
+      <span class="tag-text text-violet">Hiring Reality</span>
+    </div>
+    <div class="card-title">🚀 Founder's Lens</div>
+    <div class="card-sub">What Hirers See</div>
+    <div class="card-focus text-violet">↳ What makes you stand out</div>
+    <div class="points">
+      <div class="point">
+        <span class="point-icon text-violet">→</span>
+        <div><div class="point-label">Build, Don't Clone</div><div class="point-desc">ChatGPT clones are ignored. Solve a real problem.</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-violet">→</span>
+        <div><div class="point-label">Deploy Everything</div><div class="point-desc">Live URLs beat certificates every single time</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-violet">→</span>
+        <div><div class="point-label">Write Publicly</div><div class="point-desc">A blog post on what broke > any resume bullet point</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-violet">→</span>
+        <div><div class="point-label">Niche Down Early</div><div class="point-desc">"AI for EdTech" is memorable. "AI Engineer" isn't.</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-violet">→</span>
+        <div><div class="point-label">Cold Outreach Works</div><div class="point-desc">Reference specific work. Never send generic DMs.</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-violet">→</span>
+        <div><div class="point-label">Your GitHub = Resume</div><div class="point-desc">Green squares, clean READMEs, pinned repos</div></div>
+      </div>
+    </div>
+    <div class="verdict-box verdict-violet">
+      <div class="verdict-label text-violet">Core Insight</div>
+      <div class="verdict-text">Portfolio > Degree. Impact > Activity. Builders get hired.</div>
+    </div>
+    <div class="cta cta-violet">⚡ Ship something this week.</div>
+  </div>
+
+  <!-- CARD 3: ENGINEER -->
+  <div class="card card-cyan">
+    <div class="card-top-bar bar-cyan"></div>
+    <div class="tag tag-cyan">
+      <div class="dot dot-cyan"></div>
+      <span class="tag-text text-cyan">Production Truth</span>
+    </div>
+    <div class="card-title">🛠️ Senior Engineer</div>
+    <div class="card-sub">Technical Depth</div>
+    <div class="card-focus text-cyan">↳ What actually matters technically</div>
+    <div class="points">
+      <div class="point">
+        <span class="point-icon text-cyan">//</span>
+        <div><div class="point-label">Python Deeply</div><div class="point-desc">async, typing, decorators — not just syntax</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-cyan">//</span>
+        <div><div class="point-label">RAG + Evaluation</div><div class="point-desc">Build it AND measure it. RAGAS metrics. Always.</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-cyan">//</span>
+        <div><div class="point-label">FastAPI + Docker</div><div class="point-desc">AI that can't be consumed by an API is useless</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-cyan">//</span>
+        <div><div class="point-label">LangChain → Agents</div><div class="point-desc">Build one ReAct agent from scratch to understand it</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-cyan">//</span>
+        <div><div class="point-label">Fine-tune a Model</div><div class="point-desc">Phi-3 or Llama 3.2 on domain data using Unsloth</div></div>
+      </div>
+      <div class="point">
+        <span class="point-icon text-cyan">//</span>
+        <div><div class="point-label">Obsess over Evals</div><div class="point-desc">Faithfulness, relevance, latency — before you ship</div></div>
+      </div>
+    </div>
+    <div class="verdict-box verdict-cyan">
+      <div class="verdict-label text-cyan">Core Insight</div>
+      <div class="verdict-text">Engineers who evaluate > engineers who just build.</div>
+    </div>
+    <div class="cta cta-cyan">⚡ Add metrics to your next project.</div>
+  </div>
+
+</div>
+
+<!-- COMMON SKILLS -->
+<div class="bottom-box">
+  <div class="section-label">◆ All 3 Perspectives Agree On These Core Skills</div>
+  <div class="skills-wrap">
+    <span class="skill-tag" style="color:#F59E0B;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25)">Python</span>
+    <span class="skill-tag" style="color:#A855F7;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.25)">LLM APIs</span>
+    <span class="skill-tag" style="color:#06B6D4;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.25)">RAG Systems</span>
+    <span class="skill-tag" style="color:#F59E0B;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25)">Vector DBs</span>
+    <span class="skill-tag" style="color:#A855F7;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.25)">FastAPI</span>
+    <span class="skill-tag" style="color:#06B6D4;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.25)">Docker</span>
+    <span class="skill-tag" style="color:#F59E0B;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25)">Git</span>
+    <span class="skill-tag" style="color:#A855F7;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.25)">SQL</span>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<div class="bottom-box">
+  <div class="section-label">◆ 12-Month Internship Timeline</div>
+  <div class="timeline-grid">
+    <div class="t-cell" style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2)">
+      <div class="t-month" style="color:#F59E0B">M 1–2</div>
+      <div class="t-label">Foundation</div>
+    </div>
+    <div class="t-cell" style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2)">
+      <div class="t-month" style="color:#F59E0B">M 3–4</div>
+      <div class="t-label">ML + LLMs</div>
+    </div>
+    <div class="t-cell" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2)">
+      <div class="t-month" style="color:#A855F7">M 5–6</div>
+      <div class="t-label">AI Systems</div>
+    </div>
+    <div class="t-cell" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2)">
+      <div class="t-month" style="color:#A855F7">M 7–8</div>
+      <div class="t-label">Production</div>
+    </div>
+    <div class="t-cell" style="background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.2)">
+      <div class="t-month" style="color:#06B6D4">M 9–10</div>
+      <div class="t-label">Specialize</div>
+    </div>
+    <div class="t-cell" style="background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.2)">
+      <div class="t-month" style="color:#06B6D4">M 11–12</div>
+      <div class="t-label">🎯 Internship</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">B.Tech CS → AI Engineer · 3 Perspectives · 1 Roadmap · 12 Months</div>
+
+</body>
+</html>
