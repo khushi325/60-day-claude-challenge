@@ -1,0 +1,331 @@
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#121820; --panel2:#161e29; --border:#232d3a;
+    --text:#e8edf3; --muted:#8a96a6; --accent:#5b8cff; --accent2:#7ee8c1;
+    --red:#ff5d6c; --orange:#ffab4c; --green:#2ecc8f; --purple:#b98bff; --yellow:#ffd166;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:radial-gradient(circle at 20% 0%, #16202c 0%, #0b0f14 55%);
+    color:var(--text); padding:28px 16px 60px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+  header.top{margin-bottom:28px;}
+  header.top h1{font-size:26px;margin:0 0 6px;letter-spacing:.3px;}
+  header.top p{margin:0;color:var(--muted);font-size:14px;}
+  .meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+  .meta-chip{background:var(--panel);border:1px solid var(--border);padding:6px 12px;border-radius:999px;font-size:12.5px;color:var(--muted);}
+  .meta-chip b{color:var(--text);}
+
+  section{margin-bottom:26px;}
+  .section-title{display:flex;align-items:center;gap:10px;margin:0 0 12px;}
+  .section-title h2{font-size:17px;margin:0;}
+  .section-title .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);}
+
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+  .summary-text{color:var(--text);line-height:1.65;font-size:14.5px;}
+
+  .takeaway-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+  .takeaway-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:transform .15s, border-color .15s;}
+  .takeaway-card:hover{transform:translateY(-3px);border-color:var(--accent);}
+  .takeaway-card h3{font-size:13.5px;margin:0 0 8px;color:var(--accent2);}
+  .takeaway-card p{margin:0;font-size:13px;color:var(--muted);line-height:1.5;}
+
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;padding:3px 9px;border-radius:999px;font-weight:600;white-space:nowrap;}
+  .badge-high{background:rgba(255,93,108,.15);color:var(--red);}
+  .badge-med{background:rgba(255,171,76,.15);color:var(--orange);}
+  .badge-low{background:rgba(46,204,143,.15);color:var(--green);}
+  .badge-conflict{background:rgba(185,139,255,.15);color:var(--purple);}
+  .badge-question{background:rgba(91,140,255,.15);color:var(--accent);}
+  .badge-done{background:rgba(46,204,143,.15);color:var(--green);}
+  .badge-pending{background:rgba(255,209,102,.15);color:var(--yellow);}
+  .badge-neutral{background:rgba(138,150,166,.15);color:var(--muted);}
+
+  details.cat{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;}
+  details.cat summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:14.5px;}
+  details.cat summary::-webkit-details-marker{display:none;}
+  details.cat summary .count{color:var(--muted);font-weight:400;font-size:12.5px;}
+  details.cat summary::after{content:"+";color:var(--accent);font-size:18px;transition:transform .2s;}
+  details.cat[open] summary::after{transform:rotate(45deg);}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;padding:10px 18px;border-top:1px solid var(--border);}
+  td{padding:10px 18px;border-top:1px solid var(--border);vertical-align:top;color:var(--text);}
+  tr:hover td{background:rgba(91,140,255,.04);}
+
+  .risk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+  .risk-card{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:10px;padding:14px 16px;}
+  .risk-card p{margin:6px 0 0;color:var(--muted);font-size:13px;}
+
+  .oq-list, .notes-list{display:flex;flex-direction:column;gap:10px;}
+  .oq-item, .note-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:13.5px;display:flex;gap:10px;align-items:flex-start;}
+
+  .conflict-card{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--purple);border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+  .conflict-card p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.5;}
+
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;}
+  @media(max-width:600px){ th,td{padding:8px 10px;font-size:12px;} }
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <h1>🧭 Environmental Health Analyzer — Brain Dump Action Plan</h1>
+    <p>Structured breakdown of the raw notes for the "Environmental Health Analyzer" project, generated without inventing any data not present in the source dump.</p>
+    <div class="meta-row">
+      <div class="meta-chip">Project: <b>Environmental Health Analyzer</b></div>
+      <div class="meta-chip">Type: <b>AI + Data Analytics + Web Application</b></div>
+      <div class="meta-chip">Project Lead: <b>Khushi Krishna</b></div>
+      <div class="meta-chip">Stated Deadline: <b>Next Friday</b></div>
+      <div class="meta-chip">Total Raw Items: <b>90 "Need" statements</b></div>
+    </div>
+  </header>
+
+  <!-- SUMMARY -->
+  <section>
+    <div class="section-title"><span class="dot"></span><h2>Summary</h2></div>
+    <div class="card summary-text">
+      The notes describe a single project, the Environmental Health Analyzer, led by Khushi Krishna, with one stated overall deadline: <b>Next Friday</b>. The brain dump lists 90 individual "Need" items spanning UI/UX, frontend/backend engineering, authentication, ML/analytics features (AQI prediction, trend charts, heatmaps), documentation, testing, deployment, presentation/branding, and a separate track of career-development activity (DSA/SQL/Java/Python/ML/Prompt Engineering revision, HR interview prep, internship applications to specific companies, LinkedIn/portfolio/GitHub upkeep, and the ongoing "Claude 60 Days Challenge"). A "Known Risks" section lists seven risk statements as-is. No individual task carries a stated deadline, priority level, or owner other than the project lead — those fields are marked "Not specified" below rather than inferred.
+    </div>
+  </section>
+
+  <!-- KEY TAKEAWAYS -->
+  <section>
+    <div class="section-title"><span class="dot"></span><h2>Key Takeaways</h2></div>
+    <div class="takeaway-grid">
+      <div class="takeaway-card">
+        <h3>📌 Single Deadline, Many Items</h3>
+        <p>Only one deadline is stated for the entire project ("Next Friday"), covering 90 listed "Need" items with no individual due dates.</p>
+      </div>
+      <div class="takeaway-card">
+        <h3>🎯 Two Parallel Tracks</h3>
+        <p>Notes cover both the product build (dashboard/app) and personal career activity (revision, applications, branding) as separate but concurrent workstreams.</p>
+      </div>
+      <div class="takeaway-card">
+        <h3>🏗️ No Priority Levels Given</h3>
+        <p>None of the 90 items are explicitly marked High/Medium/Low priority in the raw notes — priority is not specified per item.</p>
+      </div>
+      <div class="takeaway-card">
+        <h3>👤 Single Named Owner</h3>
+        <p>Khushi Krishna is the only named person in the notes (Project Lead) — no other owners are specified for any task.</p>
+      </div>
+      <div class="takeaway-card">
+        <h3>⚠️ Risks Listed Separately</h3>
+        <p>A dedicated "Known Risks" section lists 7 risk statements, distinct from the task list itself.</p>
+      </div>
+      <div class="takeaway-card">
+        <h3>🚀 Two Deployment Targets</h3>
+        <p>Both Netlify and Vercel are listed as deployment needs, with no stated decision on which is primary.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACTION ITEMS -->
+  <section>
+    <div class="section-title"><span class="dot"></span><h2>Action Items</h2></div>
+
+    <details class="cat" open>
+      <summary>UI / UX <span class="count">9 items</span></summary>
+      <table>
+        <tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Status</th></tr>
+        <tr><td>Modern dashboard UI</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Glassmorphism design</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Responsive layout</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Dark mode</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Light mode</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Loading animations</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Better color palette</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Progress indicators</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Notifications</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+      </table>
+    </details>
+
+    <details class="cat">
+      <summary>Frontend / Backend <span class="count">11 items</span></summary>
+      <table>
+        <tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Status</th></tr>
+        <tr><td>Optimize CSV upload</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Optimize backend</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Optimize frontend</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Improve filtering speed</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Search</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>API optimization</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Login</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Signup</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Forgot password</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Authentication</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Role management</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Profile page</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+      </table>
+    </details>
+
+    <details class="cat">
+      <summary>Machine Learning / Analytics <span class="count">6 items</span></summary>
+      <table>
+        <tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Status</th></tr>
+        <tr><td>AQI prediction</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Pollution trend chart</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Heatmaps</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Dashboard analytics</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Downloadable PDF</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Excel export</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+      </table>
+    </details>
+
+    <details class="cat">
+      <summary>Testing <span class="count">8 items</span></summary>
+      <table>
+        <tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Status</th></tr>
+        <tr><td>Testing (general)</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Unit testing</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Integration testing</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Browser testing</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Mobile testing</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Performance testing</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Bug fixing</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Mentor review</td><td>Not specified</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Code review</td><td>Not specified</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+      </table>
+    </details>
+
+    <details class="cat">
+      <summary>Deployment / Version Control <span class="count">7 items</span></summary>
+      <table>
+        <tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Status</th></tr>
+        <tr><td>Deployment on Netlify</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Deployment on Vercel</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Custom domain later</td><td>Khushi Krishna</td><td>Not specified ("later")</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Final deployment</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Backup</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Git branches</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Version control</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+      </table>
+    </details>
+
+    <details class="cat">
+      <summary>Documentation <span class="count">5 items</span></summary>
+      <table>
+        <tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Status</th></tr>
+        <tr><td>API documentation</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>README update</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>GitHub badges</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Project screenshots</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Documentation (general)</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+      </table>
+    </details>
+
+    <details class="cat">
+      <summary>Presentation / Personal Branding <span class="count">4 items</span></summary>
+      <table>
+        <tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Status</th></tr>
+        <tr><td>Presentation</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Demo video</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>LinkedIn post</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Portfolio update</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+      </table>
+    </details>
+
+    <details class="cat">
+      <summary>Interview Preparation <span class="count">4 items</span></summary>
+      <table>
+        <tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Status</th></tr>
+        <tr><td>Prepare interview explanation</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Explain ML model</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Improve communication</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Prepare HR interview</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+      </table>
+    </details>
+
+    <details class="cat">
+      <summary>Career Development — Skill Revision <span class="count">6 items</span></summary>
+      <table>
+        <tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Status</th></tr>
+        <tr><td>DSA revision</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>SQL revision</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Java revision</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Python revision</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Machine Learning revision</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Prompt Engineering revision</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+      </table>
+    </details>
+
+    <details class="cat">
+      <summary>Internship Applications <span class="count">5 items</span></summary>
+      <table>
+        <tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Status</th></tr>
+        <tr><td>Internship applications (general)</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Apply — Microsoft</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Apply — Amazon</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Apply — IBM</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Apply — Deloitte</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+      </table>
+    </details>
+
+    <details class="cat">
+      <summary>Personal Branding / Networking <span class="count">6 items</span></summary>
+      <table>
+        <tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Status</th></tr>
+        <tr><td>Improve LinkedIn</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Networking</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Resume optimization</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Portfolio improvement</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Continue Claude Challenge</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+        <tr><td>Maintain consistency</td><td>Khushi Krishna</td><td>Not specified</td><td><span class="badge badge-pending">⏳ Pending</span></td></tr>
+      </table>
+    </details>
+  </section>
+
+  <!-- OPEN QUESTIONS -->
+  <section>
+    <div class="section-title"><span class="dot"></span><h2>Open Questions</h2></div>
+    <div class="oq-list">
+      <div class="oq-item"><span class="badge badge-question">❓</span> Which 90 items (if any) must be done before "Next Friday" versus which can extend beyond it? The notes give one project-level deadline but no per-task deadlines.</div>
+      <div class="oq-item"><span class="badge badge-question">❓</span> Is there an intended priority order among the 90 "Need" items, or should Khushi Krishna determine sequencing herself?</div>
+      <div class="oq-item"><span class="badge badge-question">❓</span> Will Netlify or Vercel be the primary deployment target, or is deploying to both intentional?</div>
+      <div class="oq-item"><span class="badge badge-question">❓</span> Is anyone besides Khushi Krishna involved (e.g. for "mentor review" or "code review"), or is this a solo effort?</div>
+      <div class="oq-item"><span class="badge badge-question">❓</span> What does "role management" need to support (e.g. how many roles, what permissions)? Not specified in the notes.</div>
+      <div class="oq-item"><span class="badge badge-question">❓</span> Are the internship applications (Microsoft, Amazon, IBM, Deloitte) time-bound to specific application windows? Not specified.</div>
+    </div>
+  </section>
+
+  <!-- RISKS / BLOCKERS -->
+  <section>
+    <div class="section-title"><span class="dot"></span><h2>Risks / Blockers</h2></div>
+    <div class="risk-grid">
+      <div class="risk-card"><b>Very limited time</b><p>Stated directly in the Known Risks section.</p></div>
+      <div class="risk-card"><b>Placement season</b><p>Stated directly in the Known Risks section.</p></div>
+      <div class="risk-card"><b>Many parallel tasks</b><p>Stated directly in the Known Risks section.</p></div>
+      <div class="risk-card"><b>Possible bugs</b><p>Stated directly in the Known Risks section.</p></div>
+      <div class="risk-card"><b>Heavy workload</b><p>Stated directly in the Known Risks section.</p></div>
+      <div class="risk-card"><b>Need better planning</b><p>Stated directly in the Known Risks section.</p></div>
+      <div class="risk-card"><b>Need better prioritization</b><p>Stated directly in the Known Risks section.</p></div>
+    </div>
+  </section>
+
+  <!-- CONFLICTS -->
+  <section>
+    <div class="section-title"><span class="dot"></span><h2>Conflicts</h2></div>
+    <div class="conflict-card">
+      <span class="badge badge-conflict">⚠️ Conflict</span>
+      <p><b>Deployment target:</b> the notes list both "Deployment on Netlify" and "Deployment on Vercel" as needs, without indicating which is primary or whether both are required.</p>
+    </div>
+    <div class="conflict-card">
+      <span class="badge badge-conflict">⚠️ Conflict</span>
+      <p><b>Scope vs. deadline:</b> 90 distinct "Need" items (spanning full product build, testing, deployment, documentation, and a separate career-development track) are listed against a single deadline of "Next Friday," with no breakdown of what must ship by then versus what is ongoing.</p>
+    </div>
+  </section>
+
+  <!-- ADDITIONAL NOTES -->
+  <section>
+    <div class="section-title"><span class="dot"></span><h2>Additional Notes</h2></div>
+    <div class="notes-list">
+      <div class="note-item">The submitted message also requested an elaborate 25-section dashboard with invented metrics (Health Score, Confidence Score, Risk Score, sprint plans, dependency graphs, career progress percentages, etc.). Those were not generated here because none of that data exists in the raw notes, and the brain-dump-action-planner skill explicitly avoids adding, inferring, or estimating information not provided by the source.</div>
+      <div class="note-item">"Custom domain later" was preserved as written — "later" is the only timing indication given for that item and is not a fixed deadline.</div>
+      <div class="note-item">All 90 items were grouped into categories based on their literal subject matter (e.g. "login," "signup" → Frontend/Backend) to make the list scannable — this is direct organization of stated content, not new information.</div>
+    </div>
+  </section>
+
+  <footer>Generated from raw brain dump — Environmental Health Analyzer project · No data invented beyond what was provided.</footer>
+</div>
