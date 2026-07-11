@@ -133,9 +133,7 @@ By the end of this challenge, I aim to:
 
 💻 **GitHub:** https://github.com/khushi325
 
-💼 **LinkedIn:** *(Add your LinkedIn profile here)*
-
-🌐 **Portfolio:** *(Add your portfolio website here)*
+💼 **LinkedIn:** www.linkedin.com/in/khushi-krishna-1a4993378
 
 ---
 
