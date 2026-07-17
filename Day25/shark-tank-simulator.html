@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Deep End — AI Shark Tank Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --abyss-1:#040d16;
+    --abyss-2:#081a26;
+    --abyss-3:#0d2635;
+    --surface:#0b2030;
+    --surface-2:#102b3d;
+    --line:#1c3a4c;
+    --gold:#e8b84b;
+    --gold-dim:#a9863a;
+    --kelp:#3ddc97;
+    --coral:#ff6b5e;
+    --ink:#eaf3f6;
+    --ink-dim:#9db4c0;
+    --ink-faint:#5f7d8c;
+    --shadow:0 20px 60px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 20% -10%, rgba(61,220,151,.08), transparent 45%),
+      radial-gradient(ellipse at 90% 10%, rgba(232,184,75,.07), transparent 40%),
+      linear-gradient(180deg,var(--abyss-1),var(--abyss-2) 40%,var(--abyss-1));
+    color:var(--ink);
+    font-family:'Space Grotesk',sans-serif;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,.25), transparent),
+      radial-gradient(1px 1px at 80% 40%, rgba(255,255,255,.18), transparent),
+      radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,.2), transparent),
+      radial-gradient(1px 1px at 60% 15%, rgba(255,255,255,.15), transparent),
+      radial-gradient(1px 1px at 25% 85%, rgba(255,255,255,.2), transparent);
+    opacity:.5;
+  }
+  h1,h2,h3,.display{font-family:'Bebas Neue',sans-serif; letter-spacing:.03em;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 24px; position:relative; z-index:1;}
+
+  /* HERO */
+  header.hero{padding:64px 0 40px; text-align:center; position:relative;}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.18em;
+    color:var(--gold); text-transform:uppercase; margin-bottom:18px;
+    border:1px solid var(--gold-dim); padding:6px 14px; border-radius:100px;
+    background:rgba(232,184,75,.06);
+  }
+  .hero h1{font-size:clamp(48px,9vw,108px); line-height:.92; margin:0; color:var(--ink);
+    text-shadow:0 0 40px rgba(61,220,151,.15);}
+  .hero h1 span{color:var(--gold);}
+  .hero p.sub{color:var(--ink-dim); max-width:560px; margin:20px auto 0; font-size:16px; line-height:1.6;}
+  .depth-line{
+    display:flex; justify-content:center; gap:2px; margin-top:30px; opacity:.5;
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-faint);
+  }
+
+  section{padding:40px 0;}
+  .panel{
+    background:linear-gradient(180deg,var(--surface),var(--surface-2));
+    border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow);
+    padding:34px; position:relative; overflow:hidden;
+  }
+  .panel::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,transparent,rgba(232,184,75,.5),transparent);
+  }
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:10px;}
+  .section-head h2{font-size:34px; margin:0; color:var(--ink);}
+  .section-head .tag{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-faint); letter-spacing:.12em; text-transform:uppercase;}
+
+  /* FORM */
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .field{display:flex; flex-direction:column; gap:8px; margin-bottom:18px;}
+  .field.full{grid-column:1/-1;}
+  label{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--gold); font-family:'JetBrains Mono',monospace;}
+  input,textarea{
+    background:rgba(4,13,22,.55); border:1px solid var(--line); border-radius:10px;
+    color:var(--ink); padding:13px 14px; font-family:'Space Grotesk',sans-serif; font-size:15px;
+    resize:vertical; transition:border-color .2s, box-shadow .2s;
+  }
+  input:focus,textarea:focus{outline:none; border-color:var(--kelp); box-shadow:0 0 0 3px rgba(61,220,151,.15);}
+  textarea{min-height:78px;}
+  input::placeholder,textarea::placeholder{color:var(--ink-faint);}
+
+  .btn{
+    font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:.08em; text-transform:uppercase;
+    border-radius:10px; border:1px solid var(--gold-dim); background:transparent; color:var(--gold);
+    padding:14px 26px; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:10px;
+  }
+  .btn:hover{background:rgba(232,184,75,.1); transform:translateY(-1px);}
+  .btn.primary{background:var(--gold); color:#12140b; border-color:var(--gold); font-weight:700;}
+  .btn.primary:hover{background:#f3c869; box-shadow:0 8px 24px rgba(232,184,75,.25);}
+  .btn.kelp{border-color:var(--kelp); color:var(--kelp);}
+  .btn.kelp:hover{background:rgba(61,220,151,.1);}
+  .btn:disabled{opacity:.4; cursor:not-allowed; transform:none;}
+  .btn-row{display:flex; gap:14px; flex-wrap:wrap; margin-top:8px;}
+
+  /* hidden helper */
+  .hidden{display:none !important;}
+  .fade-in{animation:fadeUp .5s ease both;}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+
+  /* PITCH DISPLAY */
+  .pitch-card{border-left:3px solid var(--kelp); padding-left:20px; margin-bottom:10px;}
+  .pitch-card h3{margin:0 0 4px; font-size:30px; color:var(--gold);}
+  .pitch-row{display:grid; grid-template-columns:150px 1fr; gap:6px 16px; margin:6px 0; font-size:14.5px;}
+  .pitch-row .k{color:var(--ink-faint); font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.08em; padding-top:2px;}
+  .pitch-row .v{color:var(--ink);}
+  .ask-pill{
+    display:inline-flex; align-items:center; gap:8px; margin-top:14px;
+    background:rgba(61,220,151,.08); border:1px solid rgba(61,220,151,.35);
+    padding:10px 18px; border-radius:100px; font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--kelp);
+  }
+
+  /* JUDGES GRID */
+  .judges-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
+  .judge-card{
+    background:rgba(4,13,22,.5); border:1px solid var(--line); border-radius:14px; padding:20px;
+    transition:transform .25s, border-color .25s, box-shadow .25s; cursor:default;
+  }
+  .judge-card:hover{transform:translateY(-4px); border-color:var(--gold-dim); box-shadow:0 12px 30px rgba(0,0,0,.4);}
+  .judge-emoji{font-size:36px; margin-bottom:8px; display:block;}
+  .judge-card h4{margin:0 0 2px; font-size:20px; color:var(--ink); font-family:'Bebas Neue',sans-serif; letter-spacing:.02em;}
+  .judge-card .focus{font-size:11.5px; color:var(--gold); text-transform:uppercase; letter-spacing:.06em; font-family:'JetBrains Mono',monospace; margin-bottom:10px; display:block;}
+  .judge-card p{font-size:13px; color:var(--ink-dim); line-height:1.5; margin:0;}
+
+  /* Q&A */
+  .qa-block{
+    display:flex; gap:16px; padding:20px 0; border-bottom:1px solid var(--line);
+  }
+  .qa-block:last-child{border-bottom:none;}
+  .qa-avatar{font-size:30px; flex-shrink:0; width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,.04);
+    display:flex; align-items:center; justify-content:center; border:1px solid var(--line);}
+  .qa-content{flex:1;}
+  .qa-name{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px;}
+  .qa-question{font-size:16px; color:var(--ink); margin-bottom:12px; line-height:1.5;}
+  .qa-answer-area textarea{width:100%;}
+  .qa-reaction{
+    margin-top:12px; padding:12px 16px; border-radius:10px; font-size:14px; line-height:1.5;
+    background:rgba(61,220,151,.06); border:1px solid rgba(61,220,151,.25); color:var(--ink-dim);
+  }
+  .qa-reaction.skeptic{background:rgba(255,107,94,.06); border-color:rgba(255,107,94,.28);}
+  .qa-reaction .rtag{font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--kelp); display:block; margin-bottom:4px;}
+  .qa-reaction.skeptic .rtag{color:var(--coral);}
+  .answered-tick{color:var(--kelp); font-size:12px; margin-left:8px;}
+
+  /* SCORES */
+  .score-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:10px;}
+  .score-item{text-align:center; background:rgba(4,13,22,.5); border:1px solid var(--line); border-radius:14px; padding:20px 10px;}
+  .score-item .num{font-family:'Bebas Neue',sans-serif; font-size:44px; color:var(--gold); line-height:1;}
+  .score-item .lbl{font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.08em; margin-top:8px; font-family:'JetBrains Mono',monospace;}
+  .bar-track{height:6px; background:rgba(255,255,255,.08); border-radius:6px; margin-top:10px; overflow:hidden;}
+  .bar-fill{height:100%; background:linear-gradient(90deg,var(--kelp),var(--gold)); border-radius:6px; width:0%; transition:width 1.1s cubic-bezier(.2,.8,.2,1);}
+
+  .overall{
+    margin-top:24px; text-align:center; padding:26px; border-radius:16px;
+    background:radial-gradient(circle at 50% 0%, rgba(232,184,75,.12), transparent 70%);
+    border:1px solid var(--gold-dim);
+  }
+  .overall .n{font-family:'Bebas Neue',sans-serif; font-size:88px; color:var(--gold); line-height:1;}
+  .overall .l{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-dim); letter-spacing:.1em; text-transform:uppercase;}
+
+  /* DECISION */
+  .decision-banner{
+    text-align:center; padding:44px 30px; border-radius:18px; position:relative; overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .decision-banner.invest{background:radial-gradient(circle at 50% 0%, rgba(61,220,151,.18), transparent 70%), var(--surface); border-color:rgba(61,220,151,.4);}
+  .decision-banner.reject{background:radial-gradient(circle at 50% 0%, rgba(255,107,94,.16), transparent 70%), var(--surface); border-color:rgba(255,107,94,.4);}
+  .decision-banner.acquire{background:radial-gradient(circle at 50% 0%, rgba(232,184,75,.18), transparent 70%), var(--surface); border-color:rgba(232,184,75,.45);}
+  .decision-banner.wait{background:radial-gradient(circle at 50% 0%, rgba(160,160,200,.14), transparent 70%), var(--surface); border-color:#3a4a5c;}
+  .decision-banner .verdict{font-family:'Bebas Neue',sans-serif; font-size:clamp(40px,7vw,72px); margin:0; letter-spacing:.04em;}
+  .decision-banner .verdict.invest{color:var(--kelp);}
+  .decision-banner .verdict.reject{color:var(--coral);}
+  .decision-banner .verdict.acquire{color:var(--gold);}
+  .decision-banner .verdict.wait{color:#b7c3d6;}
+  .decision-sub{font-size:15px; color:var(--ink-dim); margin-top:8px;}
+  .deal-terms{display:flex; justify-content:center; gap:40px; margin:26px 0 10px; flex-wrap:wrap;}
+  .deal-terms div{text-align:center;}
+  .deal-terms .dv{font-family:'JetBrains Mono',monospace; font-size:24px; color:var(--ink); font-weight:600;}
+  .deal-terms .dl{font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.08em; margin-top:4px;}
+  .reasoning-list{text-align:left; max-width:640px; margin:24px auto 0; padding:0; list-style:none;}
+  .reasoning-list li{padding:10px 0 10px 26px; border-bottom:1px solid var(--line); position:relative; font-size:14.5px; color:var(--ink-dim); line-height:1.5;}
+  .reasoning-list li::before{content:"◆"; position:absolute; left:0; color:var(--gold); font-size:10px; top:14px;}
+  .reasoning-list li:last-child{border-bottom:none;}
+
+  /* LEADERBOARD */
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  th{text-align:left; font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); padding:10px 12px; border-bottom:1px solid var(--line);}
+  td{padding:14px 12px; border-bottom:1px solid var(--line); color:var(--ink);}
+  tr:last-child td{border-bottom:none;}
+  .rank{font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--gold);}
+  .pill{display:inline-block; padding:4px 12px; border-radius:100px; font-size:11px; font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.06em;}
+  .pill.invest{background:rgba(61,220,151,.12); color:var(--kelp); border:1px solid rgba(61,220,151,.3);}
+  .pill.reject{background:rgba(255,107,94,.12); color:var(--coral); border:1px solid rgba(255,107,94,.3);}
+  .pill.acquire{background:rgba(232,184,75,.12); color:var(--gold); border:1px solid rgba(232,184,75,.3);}
+  .pill.wait{background:rgba(160,160,200,.1); color:#b7c3d6; border:1px solid #3a4a5c;}
+  .empty-note{color:var(--ink-faint); font-size:13.5px; padding:20px 0; text-align:center;}
+
+  footer{text-align:center; padding:50px 0 30px; color:var(--ink-faint); font-size:12px; font-family:'JetBrains Mono',monospace;}
+
+  .progress-dots{display:flex; justify-content:center; gap:8px; margin-bottom:28px;}
+  .progress-dots span{width:8px; height:8px; border-radius:50%; background:var(--line); transition:.3s;}
+  .progress-dots span.active{background:var(--gold); width:24px; border-radius:4px;}
+  .progress-dots span.done{background:var(--kelp);}
+
+  @media(max-width:820px){
+    .grid2{grid-template-columns:1fr;}
+    .judges-grid{grid-template-columns:repeat(2,1fr);}
+    .score-grid{grid-template-columns:repeat(2,1fr);}
+    .deal-terms{gap:24px;}
+    .pitch-row{grid-template-columns:120px 1fr;}
+  }
+  @media(max-width:480px){
+    .judges-grid{grid-template-columns:1fr;}
+    .score-grid{grid-template-columns:repeat(2,1fr);}
+    .qa-block{gap:10px;}
+  }
+
+  #confetti-canvas{position:fixed; inset:0; pointer-events:none; z-index:999;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+  }
+</style>
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">◈ Season 01 · AI Simulation</span>
+    <h1>THE DEEP <span>END</span></h1>
+    <p class="sub">Pitch your startup to four AI sharks. Answer their questions, take the heat, and find out if you're swimming home with a deal — or getting eaten alive.</p>
+    <div class="depth-line">— 000 FATHOMS —</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="progress-dots" id="progressDots">
+    <span class="active" data-step="0"></span>
+    <span data-step="1"></span>
+    <span data-step="2"></span>
+    <span data-step="3"></span>
+  </div>
+
+  <!-- STEP 0: INTAKE FORM -->
+  <section id="step-form" class="fade-in">
+    <div class="panel">
+      <div class="section-head">
+        <h2>Pitch Intake</h2>
+        <span class="tag">Step 01 · Tell us the idea</span>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Startup Name</label>
+          <input id="f-name" type="text" placeholder="e.g. Kelpo">
+        </div>
+        <div class="field">
+          <label>Funding Ask</label>
+          <input id="f-ask" type="text" placeholder="e.g. $150,000 for 8% equity">
+        </div>
+        <div class="field full">
+          <label>Problem Statement</label>
+          <textarea id="f-problem" placeholder="What painful, expensive, or annoying problem are you solving?"></textarea>
+        </div>
+        <div class="field full">
+          <label>Solution</label>
+          <textarea id="f-solution" placeholder="How does your product or service solve it?"></textarea>
+        </div>
+        <div class="field">
+          <label>Revenue Model</label>
+          <textarea id="f-revenue" placeholder="e.g. SaaS subscription, marketplace take-rate, one-time purchase..."></textarea>
+        </div>
+        <div class="field">
+          <label>Target Audience</label>
+          <textarea id="f-audience" placeholder="Who exactly is this for?"></textarea>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" onclick="startPitch()">Enter the Tank →</button>
+        <button class="btn" onclick="fillSample()">Use Sample Pitch</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 1: PITCH + JUDGES -->
+  <section id="step-pitch" class="hidden">
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="section-head">
+        <h2>The Pitch</h2>
+        <span class="tag">Step 02 · On the floor</span>
+      </div>
+      <div class="pitch-card">
+        <h3 id="p-name"></h3>
+        <div class="pitch-row"><div class="k">Problem</div><div class="v" id="p-problem"></div></div>
+        <div class="pitch-row"><div class="k">Solution</div><div class="v" id="p-solution"></div></div>
+        <div class="pitch-row"><div class="k">Revenue</div><div class="v" id="p-revenue"></div></div>
+        <div class="pitch-row"><div class="k">Audience</div><div class="v" id="p-audience"></div></div>
+        <span class="ask-pill">💰 Asking: <span id="p-ask" class="mono"></span></span>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="section-head">
+        <h2>Meet the Sharks</h2>
+        <span class="tag">4 Judges</span>
+      </div>
+      <div class="judges-grid" id="judgesGrid"></div>
+    </div>
+
+    <div class="btn-row" style="justify-content:center; margin-bottom:10px;">
+      <button class="btn primary" onclick="goToQA()">Begin Questioning →</button>
+    </div>
+  </section>
+
+  <!-- STEP 2: Q&A -->
+  <section id="step-qa" class="hidden">
+    <div class="panel">
+      <div class="section-head">
+        <h2>Grilling Round</h2>
+        <span class="tag" id="qaProgress">Question 1 of 8</span>
+      </div>
+      <div id="qaContainer"></div>
+      <div class="btn-row" id="qaControls" style="justify-content:flex-end;"></div>
+    </div>
+  </section>
+
+  <!-- STEP 3: SCORES + DECISION -->
+  <section id="step-result" class="hidden">
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="section-head">
+        <h2>Scorecard</h2>
+        <span class="tag">Step 03 · Evaluation</span>
+      </div>
+      <div class="score-grid" id="scoreGrid"></div>
+      <div class="overall">
+        <div class="n" id="overallScore">0</div>
+        <div class="l">Overall Investment Score / 100</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="section-head">
+        <h2>The Verdict</h2>
+        <span class="tag">Step 04 · Decision</span>
+      </div>
+      <div id="decisionBanner" class="decision-banner">
+        <p class="verdict" id="verdictText">—</p>
+        <p class="decision-sub" id="verdictSub"></p>
+        <div class="deal-terms" id="dealTerms"></div>
+        <ul class="reasoning-list" id="reasoningList"></ul>
+      </div>
+      <div class="btn-row" style="justify-content:center; margin-top:26px;">
+        <button class="btn primary" onclick="downloadReport()">⬇ Download Pitch Report</button>
+        <button class="btn kelp" onclick="shareResult()">↗ Share Result</button>
+        <button class="btn" onclick="resetSim()">↺ Pitch Again</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-head">
+        <h2>Leaderboard</h2>
+        <span class="tag">Top pitches this session</span>
+      </div>
+      <div id="leaderboardWrap"></div>
+    </div>
+  </section>
+
+</div>
+
+<footer>THE DEEP END — an AI simulation. No real sharks, equity, or money were involved. Built entirely client-side.</footer>
+
+<script>
+/* ============ STATE ============ */
+let pitch = {};
+let currentStep = 0;
+let qaIndex = 0;
+let qaLog = []; // {judge, question, answer, reaction, sentiment}
+let finalScores = null;
+let finalDecision = null;
+
+const JUDGES = [
+  {
+    key:'vc', emoji:'🦈', name:'The Venture Capitalist', focus:'Market Size & Scalability',
+    desc:'Wants to know if this can become a billion-dollar category, fast.',
+    questions:[
+      (p)=>`What's the total addressable market for ${p.name}, and how fast can you realistically scale beyond ${shortAudience(p)}?`,
+      (p)=>`What stops a well-funded competitor from crushing you once ${p.name} shows traction?`
+    ]
+  },
+  {
+    key:'founder', emoji:'🦈', name:'The Founder', focus:'Execution',
+    desc:'Been in the trenches. Cares about whether you can actually ship and survive.',
+    questions:[
+      (p)=>`Walk me through how you'll actually build and deliver "${shortSolution(p)}" with a small team and limited runway.`,
+      (p)=>`What's the single biggest execution risk that could kill ${p.name} in the next 12 months, and how are you mitigating it?`
+    ]
+  },
+  {
+    key:'customer', emoji:'🦈', name:'The Customer', focus:'Usefulness',
+    desc:'Only cares if real people will actually use — and keep using — this.',
+    questions:[
+      (p)=>`Honestly, why would someone switch from what they use today to ${p.name}? What's broken enough to make them bother?`,
+      (p)=>`If I tried ${p.name} once, what would make me come back a second and third time?`
+    ]
+  },
+  {
+    key:'angel', emoji:'🦈', name:'The Angel Investor', focus:'Profitability',
+    desc:'Writes personal checks. Wants a clear, believable path to a return.',
+    questions:[
+      (p)=>`Your revenue model is "${shortRevenue(p)}" — what are realistic unit economics, and when do you become profitable?`,
+      (p)=>`You're asking for ${p.ask || 'this funding'} — exactly how will that money be spent to move the needle?`
+    ]
+  }
+];
+
+function shortAudience(p){ return truncate(p.audience,60) || 'your first customers'; }
+function shortSolution(p){ return truncate(p.solution,70) || 'your product'; }
+function shortRevenue(p){ return truncate(p.revenue,60) || 'your revenue model'; }
+function truncate(s,n){ if(!s) return ''; return s.length>n? s.slice(0,n).trim()+'…' : s; }
+
+/* ============ SAMPLE ============ */
+function fillSample(){
+  document.getElementById('f-name').value = "Kelpo";
+  document.getElementById('f-ask').value = "$150,000 for 8% equity";
+  document.getElementById('f-problem').value = "Small cafes waste 20-30% of their fresh produce every week because they have no easy way to forecast demand or reroute surplus stock before it spoils.";
+  document.getElementById('f-solution').value = "Kelpo is a lightweight app that uses point-of-sale data to predict daily demand and automatically lists surplus inventory to nearby buyers at a discount before it spoils.";
+  document.getElementById('f-revenue').value = "Monthly SaaS subscription ($49/mo per location) plus a 5% transaction fee on surplus items sold through the marketplace.";
+  document.getElementById('f-audience').value = "Independent cafes, bakeries, and small grocers in urban areas with 1-5 locations.";
+}
+
+/* ============ NAV ============ */
+function setStep(n){
+  currentStep = n;
+  ['step-form','step-pitch','step-qa','step-result'].forEach((id,i)=>{
+    document.getElementById(id).classList.toggle('hidden', i!==n);
+  });
+  document.querySelectorAll('#progressDots span').forEach((dot,i)=>{
+    dot.classList.toggle('active', i===n);
+    dot.classList.toggle('done', i<n);
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function startPitch(){
+  const name = document.getElementById('f-name').value.trim();
+  const problem = document.getElementById('f-problem').value.trim();
+  const solution = document.getElementById('f-solution').value.trim();
+  const revenue = document.getElementById('f-revenue').value.trim();
+  const audience = document.getElementById('f-audience').value.trim();
+  const ask = document.getElementById('f-ask').value.trim();
+
+  if(!name || !problem || !solution){
+    alert('Please fill in at least Startup Name, Problem Statement, and Solution before entering the tank.');
+    return;
+  }
+  pitch = {name, problem, solution, revenue, audience, ask};
+
+  document.getElementById('p-name').textContent = pitch.name;
+  document.getElementById('p-problem').textContent = pitch.problem;
+  document.getElementById('p-solution').textContent = pitch.solution;
+  document.getElementById('p-revenue').textContent = pitch.revenue || '—';
+  document.getElementById('p-audience').textContent = pitch.audience || '—';
+  document.getElementById('p-ask').textContent = pitch.ask || 'Not specified';
+
+  renderJudges();
+  setStep(1);
+}
+
+function renderJudges(){
+  const grid = document.getElementById('judgesGrid');
+  grid.innerHTML = JUDGES.map(j=>`
+    <div class="judge-card">
+      <span class="judge-emoji">${j.emoji}</span>
+      <h4>${j.name}</h4>
+      <span class="focus">${j.focus}</span>
+      <p>${j.desc}</p>
+    </div>
+  `).join('');
+}
+
+/* ============ Q&A FLOW ============ */
+let flatQuestions = [];
+
+function goToQA(){
+  flatQuestions = [];
+  JUDGES.forEach(j=>{
+    j.questions.forEach(qfn=>{
+      flatQuestions.push({judge:j, text:qfn(pitch)});
+    });
+  });
+  qaIndex = 0;
+  qaLog = [];
+  document.getElementById('qaContainer').innerHTML = '';
+  setStep(2);
+  renderNextQuestion();
+}
+
+function renderNextQuestion(){
+  document.getElementById('qaProgress').textContent = `Question ${qaIndex+1} of ${flatQuestions.length}`;
+  const q = flatQuestions[qaIndex];
+  const block = document.createElement('div');
+  block.className = 'qa-block fade-in';
+  block.id = 'qa-block-'+qaIndex;
+  block.innerHTML = `
+    <div class="qa-avatar">${q.judge.emoji}</div>
+    <div class="qa-content">
+      <div class="qa-name">${q.judge.name} · ${q.judge.focus}</div>
+      <div class="qa-question">"${q.text}"</div>
+      <div class="qa-answer-area">
+        <textarea id="answer-${qaIndex}" placeholder="Type your answer to ${q.judge.name.replace('The ','')}..."></textarea>
+      </div>
+      <div class="qa-reaction hidden" id="reaction-${qaIndex}"></div>
+    </div>
+  `;
+  document.getElementById('qaContainer').appendChild(block);
+  block.scrollIntoView({behavior:'smooth', block:'start'});
+
+  const controls = document.getElementById('qaControls');
+  controls.innerHTML = `<button class="btn primary" onclick="submitAnswer()">Submit Answer →</button>`;
+}
+
+function submitAnswer(){
+  const q = flatQuestions[qaIndex];
+  const answerEl = document.getElementById('answer-'+qaIndex);
+  let answer = answerEl.value.trim();
+  if(!answer){
+    answer = "(No answer given — the founder hesitated.)";
+  }
+  answerEl.disabled = true;
+
+  const {reaction, sentiment} = generateReaction(q.judge, answer, pitch);
+  const reactionEl = document.getElementById('reaction-'+qaIndex);
+  reactionEl.classList.remove('hidden');
+  reactionEl.classList.add(sentiment==='skeptic' ? 'skeptic':'');
+  reactionEl.innerHTML = `<span class="rtag">${q.judge.name} reacts</span>${reaction}`;
+
+  qaLog.push({judge:q.judge.key, question:q.text, answer, reaction, sentiment});
+
+  qaIndex++;
+  if(qaIndex < flatQuestions.length){
+    setTimeout(renderNextQuestion, 350);
+  } else {
+    document.getElementById('qaControls').innerHTML = `<button class="btn primary" onclick="finishPitch()">See the Verdict →</button>`;
+  }
+}
+
+/* ============ REACTION ENGINE ============ */
+const POSITIVE_WORDS = ['data','tested','pilot','users','revenue','growth','partner','patent','retention','profit','margin','contract','waitlist','validated','traction','signed','recurring','proven','scal'];
+const WEAK_WORDS = ['not sure','maybe','i think','hope','plan to','eventually','no data','don\'t know','haven\'t','idea stage','no revenue','not yet'];
+
+function generateReaction(judge, answer, p){
+  const lower = answer.toLowerCase();
+  let posHits = POSITIVE_WORDS.filter(w=>lower.includes(w)).length;
+  let weakHits = WEAK_WORDS.filter(w=>lower.includes(w)).length;
+  const lengthScore = Math.min(answer.length/180, 1); // more substance = better, capped
+  let strength = posHits*1.2 - weakHits*1.4 + lengthScore*1.5;
+
+  const templates = {
+    vc:{
+      strong:[`That's the kind of scale answer I want to hear. If those numbers hold, ${p.name} could actually be a category leader.`,
+              `Good — that shows me you're thinking market-first, not just product-first.`],
+      mixed:[`Okay, I hear the ambition, but I need sharper numbers before I believe this scales.`,
+             `That's a start, but "big market" isn't a strategy — show me the wedge.`],
+      weak:[`That's vague. Without real market sizing, I can't tell if this is a lifestyle business or a real venture.`,
+            `I'm not feeling the scale here. That answer worries me more than it reassures me.`]
+    },
+    founder:{
+      strong:[`Respect — that's a founder who's actually thought about execution, not just the pitch deck.`,
+              `That's a real, scrappy plan. I like that you know your risks.`],
+      mixed:[`It's a reasonable plan, but I've seen teams underestimate exactly this kind of complexity.`,
+             `That'll work until it doesn't — you need a backup plan for when it breaks.`],
+      weak:[`That answer makes me nervous. Execution is where good ideas go to die, and I don't hear a real plan.`,
+            `Hand-wavy. I need specifics, not optimism.`]
+    },
+    customer:{
+      strong:[`Okay, NOW I get it. That's actually a reason I'd switch.`,
+              `That's the kind of value that keeps people coming back — I buy it.`],
+      mixed:[`Hmm, that's a nice-to-have, but is it a must-have? I'm still on the fence.`,
+             `I could see using it once. Whether I come back is a different question.`],
+      weak:[`Honestly? That doesn't move me. I don't see why I'd bother switching.`,
+            `That's not a strong enough reason for a busy person to change their habits.`]
+    },
+    angel:{
+      strong:[`Those are numbers I can underwrite. That's a real path to a return.`,
+              `Good — clear unit economics is exactly what gets my check written.`],
+      mixed:[`The model's plausible, but the margins are thin until you prove it at scale.`,
+             `I need to see the profitability math pencil out more clearly before I commit.`],
+      weak:[`That's not an investable answer. Without a profit path, this is a hobby, not a business.`,
+            `I don't see how this money turns into a return. That's a problem for me.`]
+    }
+  };
+
+  let tier = strength > 1.3 ? 'strong' : (strength < -0.3 ? 'weak' : 'mixed');
+  const bank = templates[judge.key][tier];
+  const reaction = bank[Math.floor(Math.random()*bank.length)];
+  const sentiment = tier==='weak' ? 'skeptic' : 'positive';
+  return {reaction, sentiment, tier, strength};
+}
+
+/* ============ SCORING ============ */
+function finishPitch(){
+  finalScores = computeScores();
+  finalDecision = computeDecision(finalScores);
+  renderScores(finalScores);
+  renderDecision(finalDecision, finalScores);
+  addToLeaderboard(finalDecision, finalScores);
+  renderLeaderboard();
+  setStep(3);
+  if(finalDecision.type === 'invest' || finalDecision.type === 'acquire'){
+    launchConfetti();
+  }
+}
+
+function computeScores(){
+  // base score derived from tiers found during Q&A, plus some structural signals from pitch fields
+  let tierPoints = {strong:3, mixed:0, weak:-3};
+  let byJudge = {vc:0, founder:0, customer:0, angel:0};
+  let counts = {vc:0, founder:0, customer:0, angel:0};
+
+  qaLog.forEach(log=>{
+    const {tier} = generateReactionScoreProxy(log);
+    byJudge[log.judge] += tierPoints[tier];
+    counts[log.judge]++;
+  });
+
+  // structural bonuses from form completeness/length (proxy for thoughtfulness)
+  const structBonus = (field)=> field && field.length > 40 ? 4 : (field && field.length>0 ? 1 : -3);
+
+  let marketPotential = clamp(58 + byJudge.vc*4 + structBonus(pitch.audience) + (pitch.ask? 2:0) + rand(-4,4));
+  let innovation = clamp(60 + byJudge.customer*3 + structBonus(pitch.solution) + rand(-5,5));
+  let businessModel = clamp(56 + byJudge.angel*4 + structBonus(pitch.revenue) + rand(-4,4));
+  let execution = clamp(57 + byJudge.founder*4 + rand(-5,5));
+  let investmentWorthiness = clamp(Math.round((marketPotential+innovation+businessModel+execution)/4) + rand(-3,3));
+
+  return {marketPotential, innovation, businessModel, execution, investmentWorthiness};
+}
+
+// re-derive tier deterministically from stored reaction sentiment/strength text (recompute using same heuristic as generateReaction, based on stored answer)
+function generateReactionScoreProxy(log){
+  const lower = log.answer.toLowerCase();
+  let posHits = POSITIVE_WORDS.filter(w=>lower.includes(w)).length;
+  let weakHits = WEAK_WORDS.filter(w=>lower.includes(w)).length;
+  const lengthScore = Math.min(log.answer.length/180, 1);
+  let strength = posHits*1.2 - weakHits*1.4 + lengthScore*1.5;
+  let tier = strength > 1.3 ? 'strong' : (strength < -0.3 ? 'weak' : 'mixed');
+  return {tier};
+}
+
+function clamp(n){ return Math.max(5, Math.min(99, Math.round(n))); }
+function rand(min,max){ return Math.random()*(max-min)+min; }
+
+function renderScores(s){
+  const items = [
+    {label:'Market Potential', value:s.marketPotential},
+    {label:'Innovation', value:s.innovation},
+    {label:'Business Model', value:s.businessModel},
+    {label:'Execution', value:s.execution},
+    {label:'Investment Worthiness', value:s.investmentWorthiness}
+  ];
+  const grid = document.getElementById('scoreGrid');
+  grid.innerHTML = items.map(it=>`
+    <div class="score-item">
+      <div class="num">${it.value}</div>
+      <div class="lbl">${it.label}</div>
+      <div class="bar-track"><div class="bar-fill" data-w="${it.value}"></div></div>
+    </div>
+  `).join('');
+  setTimeout(()=>{
+    document.querySelectorAll('.bar-fill').forEach(b=>{ b.style.width = b.dataset.w+'%'; });
+  }, 100);
+
+  const overall = Math.round((s.marketPotential+s.innovation+s.businessModel+s.execution+s.investmentWorthiness)/5);
+  document.getElementById('overallScore').textContent = overall;
+  s.overall = overall;
+}
+
+/* ============ DECISION ENGINE ============ */
+function computeDecision(s){
+  const o = Math.round((s.marketPotential+s.innovation+s.businessModel+s.execution+s.investmentWorthiness)/5);
+  let type, headline, sub;
+  let reasoning = [];
+
+  if(o >= 78){
+    type='invest';
+    headline = `🤝 DEAL! We're In.`;
+    sub = `The sharks believe in ${pitch.name} — and they're ready to write a check.`;
+    reasoning.push(`Strong overall score of ${o}/100 across all five evaluation criteria.`);
+    reasoning.push(`Market Potential (${s.marketPotential}) and Business Model (${s.businessModel}) both cleared the investment bar.`);
+    reasoning.push(`Answers in the Q&A round showed clarity and conviction under pressure.`);
+  } else if(o >= 62){
+    type='acquire';
+    headline = `🔁 We'll Acquire the IP.`;
+    sub = `The sharks aren't sold on you as a standalone company — but they want what you built.`;
+    reasoning.push(`The product idea itself (Innovation: ${s.innovation}) is stronger than the business case around it.`);
+    reasoning.push(`Execution (${s.execution}) or Business Model (${s.businessModel}) raised enough doubt to avoid a straight investment.`);
+    reasoning.push(`Sharks see more value folding this into an existing platform than betting on the team solo.`);
+  } else if(o >= 45){
+    type='wait';
+    headline = `⏳ Come Back Later.`;
+    sub = `There's something here — but it's not ready for a check yet.`;
+    reasoning.push(`Overall score of ${o}/100 shows real potential undermined by unresolved risk.`);
+    reasoning.push(`Weaker responses during questioning left the sharks uncertain rather than convinced.`);
+    reasoning.push(`Sharks want to see traction, data, or a sharper model before committing capital.`);
+  } else {
+    type='reject';
+    headline = `❌ I'm Out.`;
+    sub = `The sharks have decided to pass on ${pitch.name}.`;
+    reasoning.push(`Overall score of ${o}/100 fell below the bar for further consideration.`);
+    reasoning.push(`Multiple judges flagged unresolved concerns in market, model, or execution during the grilling round.`);
+    reasoning.push(`As pitched today, the risk outweighs the sharks' confidence in the upside.`);
+  }
+
+  // valuation / funding suggestion
+  const askNumber = extractAskAmount(pitch.ask);
+  let fundingAmount, valuation, equity;
+  if(type==='invest'){
+    fundingAmount = askNumber ? Math.round(askNumber*(0.8+Math.random()*0.4)) : Math.round(50000 + o*2000);
+    equity = Math.round(6 + (100-o)/6);
+    valuation = Math.round(fundingAmount / (equity/100));
+    reasoning.push(`Suggested terms are calibrated to the strength of your metrics — better data next time could mean better terms.`);
+  } else if(type==='acquire'){
+    fundingAmount = askNumber ? Math.round(askNumber*0.5) : Math.round(30000 + o*1200);
+    equity = null;
+    valuation = Math.round(fundingAmount * (1.5+Math.random()));
+    reasoning.push(`Acquisition offer reflects the value of your IP and product, not a full company valuation.`);
+  } else {
+    fundingAmount = 0; valuation = null; equity = null;
+  }
+
+  return {type, headline, sub, reasoning, fundingAmount, valuation, equity, overall:o, askNumber};
+}
+
+function extractAskAmount(askStr){
+  if(!askStr) return null;
+  const match = askStr.replace(/,/g,'').match(/\$?([\d]+)(k|K|m|M)?/);
+  if(!match) return null;
+  let n = parseFloat(match[1]);
+  if(match[2] && /k/i.test(match[2])) n *= 1000;
+  if(match[2] && /m/i.test(match[2])) n *= 1000000;
+  return n;
+}
+
+function fmtMoney(n){
+  if(n===null || n===undefined) return '—';
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+
+function renderDecision(d, s){
+  const banner = document.getElementById('decisionBanner');
+  banner.className = 'decision-banner ' + d.type;
+  document.getElementById('verdictText').textContent = d.headline;
+  document.getElementById('verdictText').className = 'verdict ' + d.type;
+  document.getElementById('verdictSub').textContent = d.sub;
+
+  const terms = document.getElementById('dealTerms');
+  if(d.type==='invest'){
+    terms.innerHTML = `
+      <div><div class="dv">${fmtMoney(d.fundingAmount)}</div><div class="dl">Funding Offered</div></div>
+      <div><div class="dv">${d.equity}%</div><div class="dl">Equity Stake</div></div>
+      <div><div class="dv">${fmtMoney(d.valuation)}</div><div class="dl">Implied Valuation</div></div>
+    `;
+  } else if(d.type==='acquire'){
+    terms.innerHTML = `
+      <div><div class="dv">${fmtMoney(d.fundingAmount)}</div><div class="dl">Acquisition Offer</div></div>
+      <div><div class="dv">${fmtMoney(d.valuation)}</div><div class="dl">Estimated IP Value</div></div>
+    `;
+  } else {
+    terms.innerHTML = '';
+  }
+
+  document.getElementById('reasoningList').innerHTML = d.reasoning.map(r=>`<li>${r}</li>`).join('');
+}
+
+/* ============ LEADERBOARD ============ */
+let leaderboard = [];
+function addToLeaderboard(d, s){
+  leaderboard.push({
+    name: pitch.name,
+    overall: s.overall,
+    type: d.type,
+    ask: pitch.ask || '—',
+    funding: d.fundingAmount || 0,
+    time: new Date().toLocaleTimeString()
+  });
+  leaderboard.sort((a,b)=>b.overall-a.overall);
+}
+
+function renderLeaderboard(){
+  const wrap = document.getElementById('leaderboardWrap');
+  if(leaderboard.length===0){
+    wrap.innerHTML = `<div class="empty-note">No pitches yet this session.</div>`;
+    return;
+  }
+  const rows = leaderboard.slice(0,10).map((row,i)=>`
+    <tr>
+      <td><span class="rank">#${i+1}</span></td>
+      <td>${row.name}</td>
+      <td>${row.overall}/100</td>
+      <td><span class="pill ${row.type}">${labelForType(row.type)}</span></td>
+      <td class="mono">${row.funding? fmtMoney(row.funding):'—'}</td>
+    </tr>
+  `).join('');
+  wrap.innerHTML = `
+    <table>
+      <thead><tr><th>Rank</th><th>Startup</th><th>Score</th><th>Outcome</th><th>Funding</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+function labelForType(t){
+  return {invest:'Invested', reject:'Passed', acquire:'Acquired', wait:'Come Back Later'}[t] || t;
+}
+
+/* ============ REPORT / SHARE ============ */
+function downloadReport(){
+  const d = finalDecision, s = finalScores;
+  const lines = [];
+  lines.push(`THE DEEP END — PITCH REPORT`);
+  lines.push(`=============================`);
+  lines.push(``);
+  lines.push(`Startup: ${pitch.name}`);
+  lines.push(`Funding Ask: ${pitch.ask||'—'}`);
+  lines.push(``);
+  lines.push(`Problem: ${pitch.problem}`);
+  lines.push(`Solution: ${pitch.solution}`);
+  lines.push(`Revenue Model: ${pitch.revenue||'—'}`);
+  lines.push(`Target Audience: ${pitch.audience||'—'}`);
+  lines.push(``);
+  lines.push(`--- SCORECARD ---`);
+  lines.push(`Market Potential: ${s.marketPotential}/100`);
+  lines.push(`Innovation: ${s.innovation}/100`);
+  lines.push(`Business Model: ${s.businessModel}/100`);
+  lines.push(`Execution: ${s.execution}/100`);
+  lines.push(`Investment Worthiness: ${s.investmentWorthiness}/100`);
+  lines.push(`OVERALL: ${s.overall}/100`);
+  lines.push(``);
+  lines.push(`--- VERDICT ---`);
+  lines.push(d.headline.replace(/[^\x00-\x7F]/g,'').trim());
+  lines.push(d.sub);
+  if(d.type==='invest'){
+    lines.push(`Funding Offered: ${fmtMoney(d.fundingAmount)}`);
+    lines.push(`Equity Stake: ${d.equity}%`);
+    lines.push(`Implied Valuation: ${fmtMoney(d.valuation)}`);
+  } else if(d.type==='acquire'){
+    lines.push(`Acquisition Offer: ${fmtMoney(d.fundingAmount)}`);
+    lines.push(`Estimated IP Value: ${fmtMoney(d.valuation)}`);
+  }
+  lines.push(``);
+  lines.push(`Reasoning:`);
+  d.reasoning.forEach(r=> lines.push(`- ${r}`));
+  lines.push(``);
+  lines.push(`--- Q&A TRANSCRIPT ---`);
+  qaLog.forEach((log,i)=>{
+    lines.push(``);
+    lines.push(`Q${i+1} [${log.judge.toUpperCase()}]: ${log.question}`);
+    lines.push(`A: ${log.answer}`);
+    lines.push(`Reaction: ${log.reaction.replace(/[^\x00-\x7F]/g,'').trim()}`);
+  });
+  lines.push(``);
+  lines.push(`Generated by The Deep End — AI Shark Tank Simulator`);
+
+  const blob = new Blob([lines.join('\n')], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${pitch.name.replace(/\s+/g,'_')}_Pitch_Report.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function shareResult(){
+  const d = finalDecision, s = finalScores;
+  const text = `I just pitched "${pitch.name}" on The Deep End (AI Shark Tank Simulator) and scored ${s.overall}/100. Verdict: ${labelForType(d.type)}! 🦈`;
+  if(navigator.share){
+    navigator.share({title:'The Deep End', text}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(text).then(()=>{
+      alert('Result copied to clipboard:\n\n' + text);
+    }).catch(()=>{
+      prompt('Copy your result:', text);
+    });
+  }
+}
+
+function resetSim(){
+  document.getElementById('f-name').value='';
+  document.getElementById('f-ask').value='';
+  document.getElementById('f-problem').value='';
+  document.getElementById('f-solution').value='';
+  document.getElementById('f-revenue').value='';
+  document.getElementById('f-audience').value='';
+  qaLog=[]; qaIndex=0; pitch={}; finalScores=null; finalDecision=null;
+  setStep(0);
+}
+
+/* ============ CONFETTI ============ */
+function launchConfetti(){
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#e8b84b','#3ddc97','#ff6b5e','#eaf3f6','#a9863a'];
+  let particles = [];
+  for(let i=0;i<160;i++){
+    particles.push({
+      x: Math.random()*canvas.width,
+      y: -20 - Math.random()*canvas.height*0.5,
+      r: 4+Math.random()*6,
+      c: colors[Math.floor(Math.random()*colors.length)],
+      vy: 2+Math.random()*3,
+      vx: -1.5+Math.random()*3,
+      rot: Math.random()*360,
+      vrot: -6+Math.random()*12
+    });
+  }
+  let frame = 0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.x += p.vx; p.y += p.vy; p.rot += p.vrot;
+      ctx.save();
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);
+      ctx.restore();
+    });
+    frame++;
+    if(frame < 220){
+      requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+  }
+  draw();
+}
+window.addEventListener('resize', ()=>{
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+/* init */
+setStep(0);
+</script>
+</body>
+</html>
