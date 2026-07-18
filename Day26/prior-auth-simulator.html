@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prior Authorization Workflow Simulator</title>
+<style>
+/* ============================================================
+   GLOBAL / RESET
+   ============================================================ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(160deg, #eaf3fb 0%, #cfe3f5 40%, #a9cbe8 100%);
+  color: #0b1e33;
+  min-height: 100vh;
+  padding: 16px;
+}
+h1, h2, h3 { color: #0b3d63; }
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+button:hover { transform: translateY(-2px); }
+button:active { transform: translateY(0); }
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.app-header {
+  max-width: 1200px;
+  margin: 0 auto 14px auto;
+  background: #0b3d63;
+  color: #fff;
+  border-radius: 14px;
+  padding: 16px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  box-shadow: 0 6px 16px rgba(11,61,99,0.3);
+}
+.app-header h1 { color: #fff; font-size: 1.4rem; }
+.app-header .subtitle { color: #cfe3f5; font-size: 0.85rem; margin-top: 2px; }
+#restartBtn {
+  background: #e8f1fb;
+  color: #0b3d63;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+}
+#restartBtn:hover { background: #ffffff; }
+
+/* ============================================================
+   STATS BAR
+   ============================================================ */
+.stats-bar {
+  max-width: 1200px;
+  margin: 0 auto 14px auto;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.stat-box {
+  background: #ffffff;
+  border: 2px solid #bcd7ee;
+  border-radius: 10px;
+  padding: 10px 16px;
+  flex: 1;
+  min-width: 150px;
+  text-align: center;
+  box-shadow: 0 3px 8px rgba(11,61,99,0.08);
+}
+.stat-box .label { font-size: 0.75rem; color: #4a6b8a; text-transform: uppercase; letter-spacing: .5px; }
+.stat-box .value { font-size: 1.3rem; font-weight: 700; color: #0b3d63; }
+
+/* ============================================================
+   PROGRESS TRACKER
+   ============================================================ */
+.progress-tracker {
+  max-width: 1200px;
+  margin: 0 auto 16px auto;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 3px 8px rgba(11,61,99,0.08);
+  overflow-x: auto;
+}
+.progress-track {
+  display: flex;
+  align-items: center;
+  min-width: 700px;
+}
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+.progress-step .circle {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: #dce9f7;
+  border: 2px solid #a9cbe8;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700; color: #4a6b8a;
+  z-index: 2;
+}
+.progress-step.done .circle { background: #2e8b57; border-color: #2e8b57; color: #fff; }
+.progress-step.active .circle { background: #1f6fb2; border-color: #1f6fb2; color: #fff; box-shadow: 0 0 0 4px rgba(31,111,178,0.25); }
+.progress-step .label {
+  font-size: 0.65rem; color: #4a6b8a; margin-top: 4px; text-align: center; max-width: 90px;
+}
+.progress-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 15px; left: 55%; width: 90%; height: 3px;
+  background: #dce9f7; z-index: 1;
+}
+.progress-step.done:not(:last-child)::after { background: #2e8b57; }
+
+/* ============================================================
+   SCENARIO PICKER
+   ============================================================ */
+.scenario-grid {
+  max-width: 1000px;
+  margin: 30px auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+.scenario-card {
+  background: #ffffff;
+  border: 2px solid #bcd7ee;
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(11,61,99,0.1);
+}
+.scenario-card .icon { font-size: 2.4rem; }
+.scenario-card h3 { margin: 10px 0 6px 0; font-size: 1rem; }
+.scenario-card p { font-size: 0.82rem; color: #33547a; margin-bottom: 12px; min-height: 55px; }
+.scenario-card button {
+  background: #1f6fb2; color: #fff; padding: 9px 16px; width: 100%;
+}
+.scenario-card button:hover { background: #185a91; }
+
+/* ============================================================
+   BOARD / LANES
+   ============================================================ */
+.board {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.lane {
+  background: rgba(255,255,255,0.65);
+  border-radius: 14px;
+  padding: 14px;
+  min-height: 420px;
+  border-top: 6px solid #1f6fb2;
+}
+.lane.patient { border-top-color: #3aa0d8; }
+.lane.provider { border-top-color: #1f6fb2; }
+.lane.payer { border-top-color: #0b3d63; }
+.lane h2 {
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px dashed #bcd7ee;
+}
+.zone {
+  background: #eaf3fb;
+  border: 2px dashed #a9cbe8;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  min-height: 64px;
+  transition: background .2s, border-color .2s;
+  position: relative;
+}
+.zone .zone-title { font-size: 0.85rem; font-weight: 700; color: #0b3d63; margin-bottom: 4px; }
+.zone .zone-desc { font-size: 0.72rem; color: #4a6b8a; }
+.zone.active-drop {
+  border-color: #1f6fb2;
+  background: #d7ecff;
+  box-shadow: 0 0 0 3px rgba(31,111,178,0.15);
+}
+.zone.target-ready {
+  border-style: solid;
+  border-color: #1f6fb2;
+  animation: pulseTarget 1.6s ease-in-out infinite;
+}
+@keyframes pulseTarget {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(31,111,178,0.35); }
+  50% { box-shadow: 0 0 0 8px rgba(31,111,178,0); }
+}
+.zone.completed {
+  border-style: solid;
+  border-color: #2e8b57;
+  background: #e5f6ec;
+}
+.zone.rejecting {
+  animation: shake .4s;
+  border-color: #c0392b !important;
+  background: #fdecea !important;
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%,60% { transform: translateX(-6px); }
+  40%,80% { transform: translateX(6px); }
+}
+
+/* case card */
+#case-card {
+  background: #ffffff;
+  border: 2px solid #1f6fb2;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0b3d63;
+  cursor: grab;
+  box-shadow: 0 4px 10px rgba(11,61,99,0.25);
+  text-align: center;
+  user-select: none;
+}
+#case-card:active { cursor: grabbing; }
+#case-card .cc-icon { font-size: 1.4rem; display:block; margin-bottom:2px; }
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(11,30,51,0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999;
+  padding: 16px;
+}
+.modal-box {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+}
+.modal-box h2 { margin-bottom: 10px; }
+.modal-box p { font-size: 0.92rem; line-height: 1.5; color: #1a2f45; margin-bottom: 14px; }
+.modal-box .edu-tag {
+  display: inline-block;
+  background: #eaf3fb;
+  color: #1f6fb2;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.modal-box .continue-btn {
+  background: #1f6fb2; color: #fff; padding: 10px 20px; font-size: 0.9rem;
+}
+.modal-box .continue-btn:hover { background: #185a91; }
+
+/* doc collection modal */
+.doc-pool, .doc-folder {
+  display: flex; flex-wrap: wrap; gap: 8px; min-height: 60px;
+  border: 2px dashed #bcd7ee; border-radius: 10px; padding: 10px; margin-bottom: 12px;
+}
+.doc-folder { border-color: #1f6fb2; background: #eaf3fb; }
+.doc-tile {
+  background: #ffffff; border: 1px solid #a9cbe8; border-radius: 8px;
+  padding: 8px 10px; font-size: 0.75rem; cursor: grab; color: #0b3d63; font-weight: 600;
+  box-shadow: 0 2px 5px rgba(11,61,99,0.1);
+}
+.doc-tile.wrong-doc { border-color: #c0392b; }
+.doc-tile.placed { opacity: 0.55; cursor: default; }
+.doc-folder.over { background: #d7ecff; }
+
+/* outcome badges */
+.outcome-approved { color: #2e8b57; }
+.outcome-denied { color: #c0392b; }
+.outcome-pend { color: #b8860b; }
+
+/* confetti */
+.confetti-piece {
+  position: fixed;
+  top: -10px;
+  width: 10px; height: 14px;
+  opacity: 0.9;
+  z-index: 1200;
+  animation: fall linear forwards;
+}
+@keyframes fall {
+  to { transform: translateY(110vh) rotate(540deg); opacity: 0.2; }
+}
+
+/* summary */
+.summary-list { list-style: none; margin: 10px 0; }
+.summary-list li {
+  padding: 8px 10px; border-bottom: 1px solid #eaf3fb; font-size: 0.85rem; display:flex; justify-content: space-between;
+}
+
+/* responsive */
+@media (max-width: 860px) {
+  .board { grid-template-columns: 1fr; }
+  .app-header { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div>
+    <h1>🏥 Prior Authorization Workflow Simulator</h1>
+    <div class="subtitle">Drag the case through Patient → Provider → Payer to learn how real PA decisions unfold.</div>
+  </div>
+  <button id="restartBtn">🔄 Restart / New Patient</button>
+</div>
+
+<div class="stats-bar" id="statsBar" style="display:none;">
+  <div class="stat-box"><div class="label">Scenario</div><div class="value" id="statScenario">-</div></div>
+  <div class="stat-box"><div class="label">Days Elapsed</div><div class="value" id="statDays">0</div></div>
+  <div class="stat-box"><div class="label">Efficiency Score</div><div class="value" id="statEfficiency">100</div></div>
+  <div class="stat-box"><div class="label">Current Stage</div><div class="value" id="statStage">-</div></div>
+</div>
+
+<div class="progress-tracker" id="progressTracker" style="display:none;">
+  <div class="progress-track" id="progressTrack"></div>
+</div>
+
+<!-- Scenario picker (shown at start) -->
+<div id="scenarioPicker"></div>
+
+<!-- Main board (hidden until scenario chosen) -->
+<div class="board" id="board" style="display:none;">
+  <div class="lane patient"><h2>🧑 Patient</h2><div id="laneZones-patient"></div></div>
+  <div class="lane provider"><h2>👩‍⚕️ Provider</h2><div id="laneZones-provider"></div></div>
+  <div class="lane payer"><h2>🏦 Payer</h2><div id="laneZones-payer"></div></div>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+/* ================================================================
+   SCENARIO DATA  (edit this array to add/change scenarios)
+   ================================================================ */
+const scenarios = [
+  {
+    id: 'surgery',
+    name: 'Elective Surgery (Knee Replacement)',
+    icon: '🦵',
+    description: 'A 62-year-old patient with severe osteoarthritis needs a total knee replacement.',
+    denialChance: 0.30,
+    pendChance: 0.25,
+    requiredDocs: ['Clinical Notes', "Surgeon's Letter of Medical Necessity", 'Imaging Report (X-ray/MRI)', 'Conservative Treatment History'],
+    distractorDocs: ['Dental Records', 'Unrelated Lab Panel', 'Old Insurance Card Copy'],
+    stageDays: { need: 1, visit: 3, eval: 2, docs: 3, submit: 1, review: 7 }
+  },
+  {
+    id: 'mri',
+    name: 'Advanced Imaging (MRI - Lower Back)',
+    icon: '🧲',
+    description: 'A patient with 6 weeks of lower back pain is referred for a lumbar spine MRI.',
+    denialChance: 0.35,
+    pendChance: 0.3,
+    requiredDocs: ['Physician Order', 'Clinical Justification Note', 'Conservative Treatment Notes (PT/meds)'],
+    distractorDocs: ['Vaccination Record', 'Nutrition Log', 'Unrelated Referral'],
+    stageDays: { need: 1, visit: 2, eval: 1, docs: 2, submit: 1, review: 5 }
+  },
+  {
+    id: 'specialty-med',
+    name: 'Specialty Medication (Biologic Therapy)',
+    icon: '💊',
+    description: 'A patient with moderate-to-severe rheumatoid arthritis needs a biologic infusion therapy.',
+    denialChance: 0.45,
+    pendChance: 0.35,
+    requiredDocs: ['Diagnosis & Lab Results', 'Prior Therapy Failure Documentation', "Prescriber's Letter of Medical Necessity", 'Dosing Plan'],
+    distractorDocs: ['General Physical Exam Form', 'Travel Vaccination Note', 'Unrelated Allergy List'],
+    stageDays: { need: 2, visit: 3, eval: 2, docs: 4, submit: 1, review: 10 }
+  },
+  {
+    id: 'inpatient',
+    name: 'Inpatient Admission (Pneumonia)',
+    icon: '🏨',
+    description: 'A patient presenting with severe pneumonia requires inpatient hospital admission.',
+    denialChance: 0.4,
+    pendChance: 0.2,
+    requiredDocs: ['History & Physical', 'Admission Orders', 'Severity of Illness Documentation', 'Insurance Verification'],
+    distractorDocs: ['Outpatient Follow-up Note', 'Unrelated Surgical Consent', 'Old Discharge Summary'],
+    stageDays: { need: 0, visit: 0, eval: 1, docs: 1, submit: 1, review: 2 }
+  }
+];
+
+/* ================================================================
+   STAGE METADATA (generic, applies across scenarios)
+   Educational text is shown to the user after each step completes.
+   ================================================================ */
+function getStageMeta(rawKey) {
+  const key = rawKey.replace(/[0-9]+$/, ''); // strip trailing digits used for repeat loops
+  const meta = {
+    need: {
+      lane: 'patient', title: 'Care Need Identified',
+      zoneDesc: 'Patient recognizes a health issue needing care.',
+      edu: "This is where it all begins: a patient experiences symptoms or a health event that requires medical attention. In the real world, this could be anything from chronic pain to an acute emergency."
+    },
+    visit: {
+      lane: 'patient', title: 'Patient Visits Provider',
+      zoneDesc: 'Patient sees their provider for evaluation.',
+      edu: "The patient meets with their provider (physician, specialist, or surgeon). The provider gathers history, performs an exam, and determines what treatment, test, or medication may be needed."
+    },
+    eval: {
+      lane: 'provider', title: 'Medical Necessity Evaluation',
+      zoneDesc: 'Provider determines if the service meets medical necessity criteria.',
+      edu: "Before requesting authorization, the provider's office checks the payer's medical necessity criteria (often based on guidelines like MCG or InterQual) to see if the requested service is likely to qualify."
+    },
+    docs: {
+      lane: 'provider', title: 'Collect PA Documentation',
+      zoneDesc: 'Gather the required clinical documents for submission.',
+      edu: "Prior authorization requests require supporting documentation — clinical notes, imaging, lab results, and letters of medical necessity. Missing or incomplete documentation is one of the top reasons for delays and denials."
+    },
+    submit: {
+      lane: 'provider', title: 'Submit PA Request to Payer',
+      zoneDesc: 'The completed PA packet is submitted to the payer.',
+      edu: "The provider's office (often via a portal, fax, or EDI 278 transaction) submits the prior authorization request package to the health plan for review."
+    },
+    review: {
+      lane: 'payer', title: 'Payer Initial Review',
+      zoneDesc: "Payer's utilization management (UM) team reviews the request.",
+      edu: "The payer's UM nurses and medical directors compare the submitted documentation against clinical guidelines. They may approve, pend for more information, or deny the request."
+    },
+    resubmit: {
+      lane: 'provider', title: 'Resubmit with Additional Info',
+      zoneDesc: 'Provider sends the missing information back to the payer.',
+      edu: "When a request is 'pended,' the payer is asking for more information before they can make a decision. Fast, complete responses here can prevent the request from tipping into a denial."
+    },
+    approved: {
+      lane: 'payer', title: '✅ Prior Authorization Approved',
+      zoneDesc: 'The requested service is authorized.',
+      edu: "Approval means the payer agrees the service is medically necessary and covered under the patient's plan, subject to the authorization's terms (validity window, site of service, etc.)."
+    },
+    pend: {
+      lane: 'payer', title: '⏳ Pended — More Info Needed',
+      zoneDesc: 'The payer needs additional documentation before deciding.',
+      edu: "A 'pend' is not a denial — it's a pause. The payer has identified a gap in the documentation and is giving the provider a chance to fill it before making a final decision."
+    },
+    denied: {
+      lane: 'payer', title: '❌ Prior Authorization Denied',
+      zoneDesc: 'The payer determined the request did not meet criteria.',
+      edu: "A denial means the payer determined the documentation didn't support medical necessity under their criteria. Denials always come with appeal rights — this is not the end of the road."
+    },
+    appeal: {
+      lane: 'provider', title: 'File Standard Appeal',
+      zoneDesc: 'Formally contest the denial with additional clinical rationale.',
+      edu: "A standard appeal is a formal, written request asking the payer to reconsider, usually supported by additional clinical evidence, literature, or a corrected record. Appeals can take days to weeks depending on urgency."
+    },
+    peer: {
+      lane: 'provider', title: 'Request Peer-to-Peer Review',
+      zoneDesc: "The treating provider speaks directly with the payer's medical director.",
+      edu: "A peer-to-peer (P2P) review lets the treating provider talk directly with the payer's medical director to clarify clinical rationale — often faster than a written appeal and can resolve misunderstandings on the spot."
+    },
+    reviewFinal: {
+      lane: 'payer', title: 'Final Determination',
+      zoneDesc: 'The payer issues its final decision after appeal/P2P.',
+      edu: "After an appeal or peer-to-peer discussion, the payer issues a final determination. If still denied, some plans offer an external, independent review as a further option."
+    }
+  };
+  return meta[key];
+}
+
+/* ================================================================
+   STATE
+   ================================================================ */
+let state = null; // will hold the active simulation state
+
+function freshState(scenario) {
+  return {
+    scenario,
+    daysElapsed: 0,
+    efficiency: 100,
+    flowPath: ['need'],           // ordered list of stage-keys visited/rendered
+    currentKey: 'need',           // stage the case card currently sits in
+    nextValidKeys: ['visit'],     // zone(s) that will currently accept a drop
+    collectedDocs: [],
+    pendUsed: false,
+    appealUsed: false,
+    peerUsed: false,
+    finished: false,
+    finalOutcome: null,
+    history: []                   // for the summary screen
+  };
+}
+
+/* ================================================================
+   INITIAL RENDER: SCENARIO PICKER
+   ================================================================ */
+function renderScenarioPicker() {
+  document.getElementById('statsBar').style.display = 'none';
+  document.getElementById('progressTracker').style.display = 'none';
+  document.getElementById('board').style.display = 'none';
+  const picker = document.getElementById('scenarioPicker');
+  picker.innerHTML = `
+    <h2 style="text-align:center;margin:20px 0 4px 0;">Choose a Patient Scenario</h2>
+    <p style="text-align:center;color:#33547a;font-size:0.9rem;">Each scenario has different documentation needs and risk of denial.</p>
+    <div class="scenario-grid" id="scenGrid"></div>
+  `;
+  const grid = document.getElementById('scenGrid');
+  scenarios.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'scenario-card';
+    card.innerHTML = `
+      <div class="icon">${s.icon}</div>
+      <h3>${s.name}</h3>
+      <p>${s.description}</p>
+      <button data-id="${s.id}">Start Case</button>
+    `;
+    card.querySelector('button').addEventListener('click', () => startScenario(s.id));
+    grid.appendChild(card);
+  });
+  picker.style.display = 'block';
+}
+
+function startScenario(id) {
+  const scenario = scenarios.find(s => s.id === id);
+  state = freshState(scenario);
+  document.getElementById('scenarioPicker').style.display = 'none';
+  document.getElementById('statsBar').style.display = 'flex';
+  document.getElementById('progressTracker').style.display = 'block';
+  document.getElementById('board').style.display = 'grid';
+  document.getElementById('statScenario').textContent = scenario.name;
+  renderBoard();
+  setNextValidKeys(state.nextValidKeys); // render the first drop-target zone (e.g. 'visit')
+  updateStatsAndProgress();
+  showEduModal(getStageMeta('need'), () => {}, true);
+}
+
+/* ================================================================
+   BOARD RENDERING
+   ================================================================ */
+function renderBoard() {
+  ['patient', 'provider', 'payer'].forEach(lane => {
+    document.getElementById('laneZones-' + lane).innerHTML = '';
+  });
+  state.flowPath.forEach(key => addZoneToLane(key));
+  placeCaseCard();
+  refreshZoneStates();
+  highlightValidZones();
+}
+
+function setNextValidKeys(keys) {
+  state.nextValidKeys = keys;
+  keys.forEach(k => addZoneToLane(k)); // make sure the drop target actually exists in the DOM
+  highlightValidZones();
+}
+
+function highlightValidZones() {
+  document.querySelectorAll('.zone').forEach(z => {
+    z.classList.toggle('target-ready', state.nextValidKeys.includes(z.dataset.stage));
+  });
+}
+
+function addZoneToLane(key) {
+  const meta = getStageMeta(key);
+  const laneEl = document.getElementById('laneZones-' + meta.lane);
+  if (document.getElementById('zone-' + key)) return; // already added
+  const div = document.createElement('div');
+  div.className = 'zone';
+  div.id = 'zone-' + key;
+  div.dataset.stage = key;
+  div.innerHTML = `<div class="zone-title">${meta.title}</div><div class="zone-desc">${meta.zoneDesc}</div>`;
+  attachDropHandlers(div, key);
+  laneEl.appendChild(div);
+}
+
+function placeCaseCard() {
+  let card = document.getElementById('case-card');
+  if (!card) {
+    card = document.createElement('div');
+    card.id = 'case-card';
+    card.draggable = true;
+    card.innerHTML = `<span class="cc-icon">${state.scenario.icon}</span>Case: ${state.scenario.name}`;
+    card.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', 'case-card');
+    });
+  }
+  const targetZone = document.getElementById('zone-' + state.currentKey);
+  if (targetZone) targetZone.appendChild(card);
+}
+
+function attachDropHandlers(zoneEl, key) {
+  zoneEl.addEventListener('dragover', e => {
+    if (state.nextValidKeys.includes(key)) e.preventDefault();
+  });
+  zoneEl.addEventListener('dragenter', e => {
+    if (state.nextValidKeys.includes(key)) zoneEl.classList.add('active-drop');
+  });
+  zoneEl.addEventListener('dragleave', () => zoneEl.classList.remove('active-drop'));
+  zoneEl.addEventListener('drop', e => {
+    e.preventDefault();
+    zoneEl.classList.remove('active-drop');
+    const data = e.dataTransfer.getData('text/plain');
+    if (data !== 'case-card') return;
+    if (state.nextValidKeys.includes(key)) {
+      handleArrival(key);
+    } else {
+      zoneEl.classList.add('rejecting');
+      setTimeout(() => zoneEl.classList.remove('rejecting'), 400);
+    }
+  });
+}
+
+function refreshZoneStates() {
+  document.querySelectorAll('.zone').forEach(z => {
+    const k = z.dataset.stage;
+    z.classList.toggle('completed', state.history.includes(k) || (k === state.currentKey && state.finished));
+  });
+}
+
+/* ================================================================
+   PROGRESS TRACKER
+   ================================================================ */
+const trackerSteps = [
+  { key: 'need', label: 'Need' },
+  { key: 'visit', label: 'Visit' },
+  { key: 'eval', label: 'Necessity' },
+  { key: 'docs', label: 'Documents' },
+  { key: 'submit', label: 'Submit' },
+  { key: 'review', label: 'Review' },
+  { key: 'decision', label: 'Decision' },
+  { key: 'final', label: 'Final' }
+];
+
+function currentTrackerIndex() {
+  const k = state.currentKey.replace(/[0-9]+$/, '');
+  const map = { need:0, visit:1, eval:2, docs:3, submit:4, resubmit:3, review:5, pend:5,
+                denied:6, appeal:6, peer:6, approved:7, reviewFinal:7 };
+  return map[k] !== undefined ? map[k] : 0;
+}
+
+function renderProgressTracker() {
+  const track = document.getElementById('progressTrack');
+  const curIdx = currentTrackerIndex();
+  track.innerHTML = trackerSteps.map((s, i) => {
+    let cls = '';
+    if (i < curIdx) cls = 'done';
+    else if (i === curIdx) cls = 'active';
+    return `<div class="progress-step ${cls}"><div class="circle">${i < curIdx ? '✓' : (i+1)}</div><div class="label">${s.label}</div></div>`;
+  }).join('');
+}
+
+function updateStatsAndProgress() {
+  document.getElementById('statDays').textContent = state.daysElapsed;
+  document.getElementById('statEfficiency').textContent = Math.max(0, Math.round(state.efficiency));
+  const meta = getStageMeta(state.currentKey);
+  document.getElementById('statStage').textContent = meta ? meta.title : '-';
+  renderProgressTracker();
+}
+
+/* ================================================================
+   EDUCATIONAL MODAL
+   ================================================================ */
+function showEduModal(meta, onContinue, isFirst) {
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal-box">
+        <div class="edu-tag">${isFirst ? 'Welcome' : 'How this works in real life'}</div>
+        <h2>${meta.title}</h2>
+        <p>${meta.edu}</p>
+        <button class="continue-btn" id="eduContinueBtn">${isFirst ? "Let's Begin →" : 'Continue →'}</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('eduContinueBtn').addEventListener('click', () => {
+    root.innerHTML = '';
+    onContinue();
+  });
+}
+
+/* ================================================================
+   STAGE ARRIVAL LOGIC — the core state machine
+   ================================================================ */
+function handleArrival(key) {
+  const meta = getStageMeta(key);
+  state.currentKey = key;
+  state.daysElapsed += dayCostFor(key);
+  state.history.push(key);
+
+  // Special interactive stage: document collection
+  if (key.startsWith('docs')) {
+    openDocModal(key === 'docs' ? false : true, () => {
+      afterArrivalEducation(key, meta);
+    });
+    return;
+  }
+
+  afterArrivalEducation(key, meta);
+}
+
+function dayCostFor(key) {
+  const base = key.replace(/[0-9]+$/, '');
+  const sd = state.scenario.stageDays;
+  if (sd[base] !== undefined) return sd[base];
+  const extra = { pend: 7, resubmit: 2, appeal: 14, peer: 5, reviewFinal: 5, approved: 0, denied: 0 };
+  return extra[base] !== undefined ? extra[base] : 1;
+}
+
+function afterArrivalEducation(key, meta) {
+  showEduModal(meta, () => {
+    proceedAfter(key);
+  }, false);
+  placeCaseCard();
+  updateStatsAndProgress();
+  refreshZoneStates();
+}
+
+function proceedAfter(key) {
+  const base = key.replace(/[0-9]+$/, '');
+
+  if (base === 'review') {
+    runPayerDecision(key);
+    return;
+  }
+  if (base === 'pend') {
+    // open docs stage again (missing info only)
+    const nextKey = 'docs2';
+    state.flowPath.push(nextKey);
+    addZoneToLane(nextKey);
+    setNextValidKeys([nextKey]);
+    updateStatsAndProgress();
+    return;
+  }
+  if (key === 'docs2') {
+    // after providing missing info following a pend, move to resubmission
+    const nextKey = 'resubmit';
+    state.flowPath.push(nextKey);
+    addZoneToLane(nextKey);
+    setNextValidKeys([nextKey]);
+    updateStatsAndProgress();
+    return;
+  }
+  if (base === 'resubmit') {
+    const nextKey = 'review2';
+    state.flowPath.push(nextKey);
+    addZoneToLane(nextKey);
+    setNextValidKeys([nextKey]);
+    updateStatsAndProgress();
+    return;
+  }
+  if (base === 'denied') {
+    // Offer two paths: appeal or peer-to-peer
+    const appealKey = 'appeal';
+    const peerKey = 'peer';
+    state.flowPath.push(appealKey, peerKey);
+    addZoneToLane(appealKey);
+    addZoneToLane(peerKey);
+    setNextValidKeys([appealKey, peerKey]);
+    updateStatsAndProgress();
+    return;
+  }
+  if (base === 'appeal' || base === 'peer') {
+    const nextKey = 'reviewFinal';
+    state.flowPath.push(nextKey);
+    addZoneToLane(nextKey);
+    setNextValidKeys([nextKey]);
+    updateStatsAndProgress();
+    return;
+  }
+  if (base === 'reviewFinal') {
+    runFinalDecision();
+    return;
+  }
+  if (base === 'approved') {
+    finishSimulation('approved');
+    return;
+  }
+
+  // default linear progression through the initial happy path
+  const linearOrder = ['need', 'visit', 'eval', 'docs', 'submit', 'review'];
+  const idx = linearOrder.indexOf(key);
+  if (idx >= 0 && idx < linearOrder.length - 1) {
+    const nextKey = linearOrder[idx + 1];
+    state.flowPath.push(nextKey);
+    addZoneToLane(nextKey);
+    setNextValidKeys([nextKey]);
+    updateStatsAndProgress();
+  }
+}
+
+/* ================================================================
+   PAYER DECISION LOGIC
+   ================================================================ */
+function runPayerDecision(reviewKey) {
+  const isSecondReview = reviewKey === 'review2';
+  const missingDocsPenalty = state.scenario.requiredDocs.length - state.collectedDocs.filter(
+    d => state.scenario.requiredDocs.includes(d)
+  ).length;
+
+  let denialChance = state.scenario.denialChance + missingDocsPenalty * 0.08;
+  let pendChance = state.scenario.pendChance;
+  if (isSecondReview) { pendChance = 0; denialChance = Math.max(0.1, denialChance - 0.15); }
+
+  const roll = Math.random();
+  let outcome;
+  if (roll < denialChance) outcome = 'denied';
+  else if (roll < denialChance + pendChance && !isSecondReview) outcome = 'pend';
+  else outcome = 'approved';
+
+  const nextKey = outcome; // 'approved' | 'pend' | 'denied'
+  state.flowPath.push(nextKey);
+  addZoneToLane(nextKey);
+  setNextValidKeys([nextKey]);
+  renderBoard(); // refresh zone list (card stays where it is until moved)
+  updateStatsAndProgress();
+
+  // efficiency adjustments
+  if (outcome === 'denied') state.efficiency -= 20;
+  if (outcome === 'pend') state.efficiency -= 10;
+  updateStatsAndProgress();
+}
+
+function runFinalDecision() {
+  // appeals / peer-to-peer improve odds versus the original denial
+  const roll = Math.random();
+  const approveChance = 0.62;
+  const outcome = roll < approveChance ? 'approved' : 'finalDenied';
+
+  if (outcome === 'approved') {
+    state.flowPath.push('approved');
+    addZoneToLane('approved');
+    setNextValidKeys(['approved']);
+    renderBoard();
+    updateStatsAndProgress();
+  } else {
+    state.efficiency -= 15;
+    finishSimulation('deniedFinal');
+  }
+}
+
+/* ================================================================
+   DOCUMENT COLLECTION MODAL (drag-and-drop mini-game)
+   ================================================================ */
+function openDocModal(missingOnly, onDone) {
+  const root = document.getElementById('modalRoot');
+  const scenario = state.scenario;
+
+  let poolDocs;
+  if (missingOnly) {
+    poolDocs = scenario.requiredDocs.filter(d => !state.collectedDocs.includes(d));
+    if (poolDocs.length === 0) poolDocs = [scenario.requiredDocs[0]]; // safety fallback
+  } else {
+    poolDocs = [...scenario.requiredDocs, ...scenario.distractorDocs].sort(() => Math.random() - 0.5);
+  }
+
+  root.innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal-box">
+        <div class="edu-tag">Interactive: Document Collection</div>
+        <h2>${missingOnly ? 'Provide the Missing Documentation' : 'Assemble the PA Packet'}</h2>
+        <p>${missingOnly
+          ? 'The payer pended this case. Drag the missing document(s) into the folder to resubmit.'
+          : 'Drag only the documents that are clinically relevant for this scenario into the folder. Irrelevant documents will hurt your efficiency score!'}</p>
+        <div class="doc-pool" id="docPool"></div>
+        <h3 style="font-size:0.9rem;margin-top:6px;">📁 PA Packet Folder</h3>
+        <div class="doc-folder" id="docFolder"></div>
+        <button class="continue-btn" id="docConfirmBtn" disabled>Confirm &amp; Continue →</button>
+      </div>
+    </div>
+  `;
+
+  const pool = document.getElementById('docPool');
+  const folder = document.getElementById('docFolder');
+  const confirmBtn = document.getElementById('docConfirmBtn');
+  const neededCount = missingOnly ? poolDocs.length : scenario.requiredDocs.length;
+  let placedCorrect = 0;
+
+  poolDocs.forEach(docName => {
+    const tile = document.createElement('div');
+    tile.className = 'doc-tile';
+    tile.draggable = true;
+    tile.textContent = docName;
+    tile.dataset.doc = docName;
+    tile.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', docName);
+    });
+    pool.appendChild(tile);
+  });
+
+  folder.addEventListener('dragover', e => e.preventDefault());
+  folder.addEventListener('dragenter', () => folder.classList.add('over'));
+  folder.addEventListener('dragleave', () => folder.classList.remove('over'));
+  folder.addEventListener('drop', e => {
+    e.preventDefault();
+    folder.classList.remove('over');
+    const docName = e.dataTransfer.getData('text/plain');
+    const tile = pool.querySelector(`.doc-tile[data-doc="${CSS.escape(docName)}"]`);
+    if (!tile || tile.classList.contains('placed')) return;
+
+    const isCorrect = scenario.requiredDocs.includes(docName);
+    tile.classList.add('placed');
+    tile.draggable = false;
+    if (!isCorrect) {
+      tile.classList.add('wrong-doc');
+      state.efficiency -= 5;
+      updateStatsAndProgress();
+    } else {
+      placedCorrect++;
+      if (!state.collectedDocs.includes(docName)) state.collectedDocs.push(docName);
+    }
+    const clone = tile.cloneNode(true);
+    clone.draggable = false;
+    folder.appendChild(clone);
+    tile.style.visibility = 'hidden';
+
+    if (placedCorrect >= neededCount) {
+      confirmBtn.disabled = false;
+    }
+  });
+
+  confirmBtn.addEventListener('click', () => {
+    root.innerHTML = '';
+    onDone();
+  });
+}
+
+/* ================================================================
+   FINISH / SUMMARY / CELEBRATION
+   ================================================================ */
+function finishSimulation(resultType) {
+  state.finished = true;
+  state.finalOutcome = resultType;
+  refreshZoneStates();
+  updateStatsAndProgress();
+
+  if (resultType === 'approved') {
+    launchConfetti();
+    setTimeout(showSummary, 900);
+  } else {
+    showSummary();
+  }
+}
+
+// hook: when user drags card into the 'approved' zone directly (terminal), finish
+const originalAttach = attachDropHandlers;
+attachDropHandlers = function (zoneEl, key) {
+  originalAttach(zoneEl, key);
+  zoneEl.addEventListener('drop', () => {
+    if (key === 'approved' && state.nextValidKeys.includes('approved')) {
+      // handled generally via handleArrival -> proceedAfter -> finishSimulation
+    }
+  });
+};
+
+function launchConfetti() {
+  const colors = ['#1f6fb2', '#3aa0d8', '#0b3d63', '#2e8b57', '#ffd166', '#eaf3fb'];
+  for (let i = 0; i < 90; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 4200);
+  }
+}
+
+function showSummary() {
+  const root = document.getElementById('modalRoot');
+  const s = state;
+  const outcomeLabel = s.finalOutcome === 'approved'
+    ? '<span class="outcome-approved">✅ Approved</span>'
+    : '<span class="outcome-denied">❌ Denied (Upheld on Final Review)</span>';
+
+  const stepLabels = s.history.map(k => getStageMeta(k).title);
+
+  root.innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal-box">
+        <div class="edu-tag">Workflow Summary</div>
+        <h2>Case Complete: ${outcomeLabel}</h2>
+        <p>Scenario: <strong>${s.scenario.name}</strong></p>
+        <ul class="summary-list">
+          <li><span>Total Days Elapsed</span><strong>${s.daysElapsed} days</strong></li>
+          <li><span>Efficiency Score</span><strong>${Math.max(0, Math.round(s.efficiency))} / 100</strong></li>
+          <li><span>Pend Cycle Used</span><strong>${s.history.includes('pend') ? 'Yes' : 'No'}</strong></li>
+          <li><span>Appeal Filed</span><strong>${s.history.includes('appeal') ? 'Yes' : 'No'}</strong></li>
+          <li><span>Peer-to-Peer Used</span><strong>${s.history.includes('peer') ? 'Yes' : 'No'}</strong></li>
+        </ul>
+        <h3 style="font-size:0.9rem;margin-top:10px;">Steps Traveled</h3>
+        <p style="font-size:0.8rem;color:#33547a;">${stepLabels.join(' → ')}</p>
+        <button class="continue-btn" id="summaryRestartBtn" style="margin-top:14px;">Start a New Patient →</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('summaryRestartBtn').addEventListener('click', () => {
+    root.innerHTML = '';
+    renderScenarioPicker();
+  });
+}
+
+/* ================================================================
+   RESTART BUTTON
+   ================================================================ */
+document.getElementById('restartBtn').addEventListener('click', () => {
+  document.getElementById('modalRoot').innerHTML = '';
+  renderScenarioPicker();
+});
+
+/* ================================================================
+   BOOT
+   ================================================================ */
+renderScenarioPicker();
+</script>
+</body>
+</html>
