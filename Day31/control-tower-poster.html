@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Supply Chain Control Tower — Poster</title>
+<style>
+@keyframes drift{0%{transform:translate(0,0)}50%{transform:translate(-20px,-14px)}100%{transform:translate(0,0)}}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
+@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes flow{to{stroke-dashoffset:-200}}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:#05080d;}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Segoe UI',Inter,sans-serif;}
+
+.poster{
+  position:relative;
+  width:1000px; height:1400px;
+  background:
+    radial-gradient(ellipse 700px 500px at 15% 8%, rgba(59,130,246,.20), transparent 60%),
+    radial-gradient(ellipse 600px 500px at 100% 0%, rgba(55,230,224,.14), transparent 55%),
+    radial-gradient(ellipse 900px 700px at 50% 115%, rgba(255,77,94,.10), transparent 60%),
+    linear-gradient(180deg,#05080d,#070b12 60%,#050810);
+  overflow:hidden;
+  border:1px solid #16202c;
+}
+
+/* grid overlay */
+.grid{
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(55,230,224,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(55,230,224,.05) 1px, transparent 1px);
+  background-size:40px 40px;
+  mask-image:radial-gradient(ellipse 700px 900px at 50% 40%, black, transparent 80%);
+}
+
+.scanline{
+  position:absolute; left:0; right:0; height:220px;
+  background:linear-gradient(180deg, transparent, rgba(55,230,224,.05), transparent);
+  animation:scan 7s linear infinite;
+}
+
+/* floating world-map style dots + arcs */
+.globe{
+  position:absolute; top:60px; right:-120px; width:520px; height:520px;
+  opacity:.5;
+}
+.globe svg{width:100%;height:100%;}
+
+/* header */
+.eyebrow{
+  position:absolute; top:70px; left:70px;
+  font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:6px;
+  color:#37e6e0; text-transform:uppercase; font-weight:600;
+}
+.eyebrow::before{ content:'● '; color:#ff4d5e; animation:pulse 1.6s infinite; }
+
+.title{
+  position:absolute; top:104px; left:70px; width:640px;
+  font-family:'Rajdhani','Segoe UI',sans-serif; font-weight:700;
+  font-size:76px; line-height:0.98; letter-spacing:-1px;
+  color:#f1f7fb;
+}
+.title .accent{
+  background:linear-gradient(120deg,#37e6e0,#3b82f6);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+}
+
+.subtitle{
+  position:absolute; top:330px; left:70px; width:560px;
+  font-size:17px; line-height:1.6; color:#8fa3b8; font-weight:400;
+}
+.subtitle b{ color:#eaf2f8; font-weight:600; }
+
+/* center signature element: radar / control ring */
+.radar{
+  position:absolute; top:430px; left:70px; width:860px; height:430px;
+  border:1px solid #16202c; border-radius:20px;
+  background:linear-gradient(180deg,#0b1119,#0c141e);
+  overflow:hidden;
+}
+.radar-inner{ position:relative; width:100%; height:100%; }
+.radar-ring{
+  position:absolute; border:1px solid rgba(55,230,224,.18); border-radius:50%;
+  left:50%; top:50%; transform:translate(-50%,-50%);
+}
+.sweep{
+  position:absolute; left:50%; top:50%; width:220px; height:220px;
+  transform-origin:0 0; transform:translate(0,0);
+  background:conic-gradient(from 0deg, rgba(55,230,224,.35), transparent 40%);
+  border-radius:0 100% 0 0;
+  animation:rotate 6s linear infinite;
+  opacity:.5;
+}
+.radar-node{
+  position:absolute; width:9px; height:9px; border-radius:50%;
+  box-shadow:0 0 12px currentColor;
+}
+.radar-node.crit{ background:#ff4d5e; color:#ff4d5e; animation:pulse 1.4s infinite; }
+.radar-node.med{ background:#ffa63d; color:#ffa63d; animation:pulse 1.8s infinite; }
+.radar-node.low{ background:#37e6e0; color:#37e6e0; }
+.radar-label{
+  position:absolute; font-family:'JetBrains Mono',monospace; font-size:10px; color:#5a6d82; letter-spacing:1px;
+}
+
+.hud-corner{
+  position:absolute; font-family:'JetBrains Mono',monospace; font-size:10px; color:#5a6d82; letter-spacing:2px;
+}
+
+/* KPI chips row under radar */
+.kpi-row{
+  position:absolute; top:900px; left:70px; width:860px;
+  display:flex; gap:14px;
+}
+.kpi-chip{
+  flex:1; background:#0f1826; border:1px solid #1c2a3d; border-radius:12px; padding:16px 14px;
+}
+.kpi-chip .l{ font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1.5px; color:#5a6d82; text-transform:uppercase; }
+.kpi-chip .v{ font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:#eaf2f8; margin-top:6px; }
+.kpi-chip .v.g{ color:#34d97a; }
+.kpi-chip .v.o{ color:#ffa63d; }
+.kpi-chip .v.r{ color:#ff4d5e; }
+.kpi-chip .bar{ height:3px; background:#1c2a3d; border-radius:2px; margin-top:10px; overflow:hidden;}
+.kpi-chip .bar i{ display:block; height:100%; border-radius:2px; }
+
+/* feature tags */
+.tags{
+  position:absolute; top:1030px; left:70px; width:860px;
+  display:flex; flex-wrap:wrap; gap:10px;
+}
+.tag{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:1px;
+  color:#8fa3b8; background:#0f1826; border:1px solid #1c2a3d; border-radius:20px; padding:8px 16px;
+}
+.tag b{ color:#37e6e0; }
+
+/* footer */
+.footer{
+  position:absolute; bottom:70px; left:70px; right:70px;
+  display:flex; align-items:flex-end; justify-content:space-between;
+  border-top:1px solid #16202c; padding-top:24px;
+}
+.footer .left{ font-family:'JetBrains Mono',monospace; font-size:11px; color:#5a6d82; letter-spacing:1px; line-height:1.7;}
+.footer .left b{ color:#37e6e0; }
+.footer .mark{
+  display:flex; align-items:center; gap:10px;
+}
+.footer .mark .box{
+  width:44px;height:44px;border-radius:10px;
+  background:linear-gradient(135deg,#37e6e0,#3b82f6);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Rajdhani',sans-serif; font-weight:700; font-size:18px; color:#02141a;
+  box-shadow:0 0 24px rgba(55,230,224,.4);
+}
+.footer .mark .txt{
+  font-family:'Rajdhani',sans-serif; font-weight:700; font-size:15px; color:#eaf2f8; letter-spacing:.5px;
+}
+.footer .mark .txt span{ display:block; font-family:'JetBrains Mono',monospace; font-weight:400; font-size:9px; color:#5a6d82; letter-spacing:2px; margin-top:2px;}
+
+.corner-brackets .b{
+  position:absolute; width:26px; height:26px; border-color:#2a4a63; border-style:solid;
+}
+.cb-tl{ top:40px; left:40px; border-width:2px 0 0 2px; }
+.cb-tr{ top:40px; right:40px; border-width:2px 2px 0 0; }
+.cb-bl{ bottom:40px; left:40px; border-width:0 0 2px 2px; }
+.cb-br{ bottom:40px; right:40px; border-width:0 2px 2px 0; }
+</style>
+</head>
+<body>
+
+<div class="poster" id="poster">
+  <div class="grid"></div>
+  <div class="scanline"></div>
+
+  <div class="globe">
+    <svg viewBox="0 0 400 400">
+      <circle cx="200" cy="200" r="150" fill="none" stroke="#1c2a3d" stroke-width="1"/>
+      <circle cx="200" cy="200" r="110" fill="none" stroke="#1c2a3d" stroke-width="1"/>
+      <circle cx="200" cy="200" r="70" fill="none" stroke="#1c2a3d" stroke-width="1"/>
+      <path d="M60,150 Q200,60 340,170" fill="none" stroke="#37e6e0" stroke-width="1.4" stroke-dasharray="4 6" opacity="0.55">
+        <animate attributeName="stroke-dashoffset" from="0" to="-200" dur="6s" repeatCount="indefinite"/>
+      </path>
+      <path d="M50,240 Q200,340 350,230" fill="none" stroke="#3b82f6" stroke-width="1.4" stroke-dasharray="4 6" opacity="0.5">
+        <animate attributeName="stroke-dashoffset" from="0" to="-200" dur="7s" repeatCount="indefinite"/>
+      </path>
+      <circle cx="60" cy="150" r="4" fill="#ff4d5e"/>
+      <circle cx="340" cy="170" r="4" fill="#37e6e0"/>
+      <circle cx="50" cy="240" r="4" fill="#ffa63d"/>
+      <circle cx="350" cy="230" r="4" fill="#34d97a"/>
+    </svg>
+  </div>
+
+  <div class="corner-brackets">
+    <div class="b cb-tl"></div><div class="b cb-tr"></div>
+    <div class="b cb-bl"></div><div class="b cb-br"></div>
+  </div>
+
+  <div class="eyebrow">Operations Command // Live Simulation</div>
+  <div class="title">AI SUPPLY<br>CHAIN<br><span class="accent">CONTROL TOWER</span></div>
+  <div class="subtitle">
+    Step into the seat of <b>Head of Global Operations</b>. Ports congest, suppliers slip,
+    demand spikes without warning — every alert is a decision, every decision moves the business.
+    Hold the line for <b>3 minutes</b>. Protect the KPIs that matter.
+  </div>
+
+  <div class="radar">
+    <div class="radar-inner">
+      <div class="radar-ring" style="width:120px;height:120px;"></div>
+      <div class="radar-ring" style="width:260px;height:260px;"></div>
+      <div class="radar-ring" style="width:400px;height:400px;"></div>
+      <div class="sweep"></div>
+      <div class="radar-node crit" style="left:36%;top:28%;"></div>
+      <div class="radar-node med" style="left:62%;top:64%;"></div>
+      <div class="radar-node low" style="left:70%;top:30%;"></div>
+      <div class="radar-node crit" style="left:24%;top:62%;"></div>
+      <div class="radar-node med" style="left:50%;top:20%;"></div>
+      <div class="radar-node low" style="left:44%;top:74%;"></div>
+      <div class="hud-corner" style="top:16px;left:20px;">SECTOR // GLOBAL-OPS</div>
+      <div class="hud-corner" style="top:16px;right:20px;">SIGNAL: LIVE</div>
+      <div class="hud-corner" style="bottom:16px;left:20px;">ALERTS TRACKED: 10 TYPES</div>
+      <div class="hud-corner" style="bottom:16px;right:20px;">STATUS: MONITORING</div>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-chip">
+      <div class="l">Service Level</div>
+      <div class="v g">92%</div>
+      <div class="bar"><i style="width:92%;background:#34d97a;"></i></div>
+    </div>
+    <div class="kpi-chip">
+      <div class="l">Cust. Satisfaction</div>
+      <div class="v g">88%</div>
+      <div class="bar"><i style="width:88%;background:#34d97a;"></i></div>
+    </div>
+    <div class="kpi-chip">
+      <div class="l">Inventory Health</div>
+      <div class="v o">85%</div>
+      <div class="bar"><i style="width:85%;background:#ffa63d;"></i></div>
+    </div>
+    <div class="kpi-chip">
+      <div class="l">Transport Eff.</div>
+      <div class="v g">90%</div>
+      <div class="bar"><i style="width:90%;background:#34d97a;"></i></div>
+    </div>
+    <div class="kpi-chip">
+      <div class="l">Operating Cost</div>
+      <div class="v r">100 idx</div>
+      <div class="bar"><i style="width:70%;background:#ff4d5e;"></i></div>
+    </div>
+  </div>
+
+  <div class="tags">
+    <div class="tag"><b>⏱</b> 3-Minute Live Shift</div>
+    <div class="tag"><b>🚨</b> 10 Real Incident Types</div>
+    <div class="tag"><b>📊</b> 8 Live KPIs</div>
+    <div class="tag"><b>⚡</b> Escalating Difficulty</div>
+    <div class="tag"><b>🎯</b> Graded Performance A+ – D</div>
+    <div class="tag"><b>🧩</b> Delayed Consequences</div>
+  </div>
+
+  <div class="footer">
+    <div class="left">
+      BUILT AS A SINGLE-FILE HTML EXPERIENCE<br>
+      NO FRAMEWORKS · NO BACKEND · <b>RUNS OFFLINE</b>
+    </div>
+    <div class="mark">
+      <div class="box">CT</div>
+      <div class="txt">CONTROL TOWER<span>OPS SIMULATION · 2026</span></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
