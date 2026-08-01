@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aha! — The Concept Explainer</title>
+<style>
+  :root{
+    --paper:#FAF6EA;
+    --paper-dark:#F1EAD6;
+    --ink:#22283B;
+    --ink-soft:#565C74;
+    --highlighter:#FFD23F;
+    --coral:#FF6B5E;
+    --sage:#7CAE8E;
+    --line:#D9D0B8;
+    --shadow: 4px 4px 0px rgba(34,40,59,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 1px 1px, rgba(34,40,59,0.06) 1px, transparent 0) 0 0/22px 22px,
+      var(--paper);
+    color:var(--ink);
+    font-family: "Segoe UI", "Trebuchet MS", -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:900px;
+    margin:0 auto;
+    padding:32px 20px 80px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    text-align:center;
+    margin-bottom:34px;
+    position:relative;
+  }
+  .badge{
+    display:inline-block;
+    font-size:12px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    background:var(--ink);
+    color:var(--paper);
+    padding:5px 12px;
+    border-radius:999px;
+    transform:rotate(-2deg);
+    margin-bottom:14px;
+  }
+  h1{
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight:700;
+    font-size:clamp(2.2rem,6vw,3.4rem);
+    margin:0 0 8px;
+    letter-spacing:-1px;
+  }
+  h1 span{
+    position:relative;
+    white-space:nowrap;
+  }
+  h1 span::after{
+    content:"";
+    position:absolute;
+    left:-4px; right:-4px; bottom:2px;
+    height:0.4em;
+    background:var(--highlighter);
+    z-index:-1;
+    transform:skewX(-6deg);
+  }
+  .sub{
+    color:var(--ink-soft);
+    font-size:16px;
+    max-width:520px;
+    margin:0 auto;
+  }
+
+  /* ---------- Input card ---------- */
+  .card{
+    background:#fff;
+    border:2px solid var(--ink);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    padding:26px;
+    margin-bottom:28px;
+  }
+  label{
+    display:block;
+    font-weight:700;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  textarea{
+    width:100%;
+    min-height:78px;
+    resize:vertical;
+    border:2px dashed var(--line);
+    border-radius:10px;
+    padding:14px;
+    font-size:16px;
+    font-family:inherit;
+    background:var(--paper-dark);
+    color:var(--ink);
+    outline:none;
+    transition:border-color .2s;
+  }
+  textarea:focus{border-color:var(--coral);}
+  .levels{
+    display:flex;
+    gap:10px;
+    margin:16px 0 20px;
+    flex-wrap:wrap;
+  }
+  .level-btn{
+    flex:1;
+    min-width:110px;
+    padding:10px 14px;
+    border:2px solid var(--ink);
+    background:#fff;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+    transition:transform .12s ease, background .12s ease;
+  }
+  .level-btn:hover{transform:translateY(-2px);}
+  .level-btn.active{
+    background:var(--ink);
+    color:var(--paper);
+  }
+  .go-btn{
+    width:100%;
+    padding:14px;
+    font-size:17px;
+    font-weight:800;
+    letter-spacing:0.3px;
+    border:2px solid var(--ink);
+    border-radius:12px;
+    background:var(--coral);
+    color:#fff;
+    cursor:pointer;
+    box-shadow: 3px 3px 0 var(--ink);
+    transition: transform .1s ease, box-shadow .1s ease;
+  }
+  .go-btn:hover{ transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--ink); }
+  .go-btn:active{ transform:translate(0,0); box-shadow:1px 1px 0 var(--ink); }
+  .go-btn:disabled{opacity:0.6; cursor:wait; transform:none; box-shadow:3px 3px 0 var(--ink);}
+
+  /* ---------- States ---------- */
+  #empty-state{
+    text-align:center;
+    color:var(--ink-soft);
+    padding:50px 20px;
+  }
+  #empty-state svg{width:120px;opacity:0.8;margin-bottom:10px;}
+
+  #loading{
+    display:none;
+    text-align:center;
+    padding:50px 20px;
+  }
+  .pencil{
+    width:64px;height:64px;
+    margin:0 auto 14px;
+    animation: scribble 1s infinite ease-in-out;
+  }
+  @keyframes scribble{
+    0%,100%{transform:rotate(-8deg);}
+    50%{transform:rotate(8deg);}
+  }
+  #loading p{color:var(--ink-soft); font-style:italic;}
+
+  #error-state{
+    display:none;
+    background:#fff3f2;
+    border:2px solid var(--coral);
+    border-radius:12px;
+    padding:18px 20px;
+    color:#9c2f26;
+    margin-bottom:20px;
+  }
+
+  /* ---------- Output ---------- */
+  #output{display:none;}
+  .sticky{
+    position:relative;
+    transform:rotate(-1deg);
+  }
+  .out-card{
+    background:#fff;
+    border:2px solid var(--ink);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    padding:28px;
+    margin-bottom:22px;
+    animation: pop-in .35s ease both;
+  }
+  @keyframes pop-in{
+    from{opacity:0; transform:translateY(14px) scale(.98);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+  .eyebrow{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1.2px;
+    font-weight:800;
+    color:var(--coral);
+    margin-bottom:6px;
+  }
+  .topic-title{
+    font-family:Georgia,serif;
+    font-size:1.7rem;
+    margin:0 0 18px;
+  }
+  .diagram-box{
+    background:var(--paper-dark);
+    border:2px dashed var(--line);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:20px;
+    display:flex;
+    justify-content:center;
+  }
+  .diagram-box svg{ max-width:100%; height:auto; }
+  .analogy-line{
+    font-size:1.1rem;
+    font-weight:600;
+    background: linear-gradient(120deg, var(--highlighter) 0%, var(--highlighter) 100%);
+    background-repeat:no-repeat;
+    background-size:100% 40%;
+    background-position:0 88%;
+    display:inline;
+    padding:0 2px;
+  }
+  .section-block{margin-top:22px;}
+  .section-block h3{
+    font-size:14px;
+    text-transform:uppercase;
+    letter-spacing:0.8px;
+    color:var(--ink-soft);
+    margin:0 0 8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-block p{ line-height:1.65; margin:0; font-size:15.5px;}
+  .mistakes{
+    background:#FFF7DE;
+    border:2px solid var(--highlighter);
+    border-radius:12px;
+    padding:16px 18px;
+    margin-top:22px;
+    transform:rotate(0.6deg);
+  }
+  .mistakes h3{color:#8a6d00; margin:0 0 8px; font-size:14px; text-transform:uppercase;}
+  .mistakes ul{margin:0; padding-left:20px; line-height:1.6;}
+  .go-deeper{
+    margin-top:22px;
+    padding:16px 18px;
+    border:2px solid var(--sage);
+    border-radius:12px;
+    background:#F1F8F3;
+  }
+  .go-deeper h3{color:#3d7051; margin:0 0 8px; font-size:14px; text-transform:uppercase;}
+
+  .again-btn{
+    background:none;
+    border:2px solid var(--ink);
+    border-radius:10px;
+    padding:10px 16px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:14px;
+  }
+  .again-btn:hover{background:var(--ink); color:var(--paper);}
+
+  /* ---------- Docs panel ---------- */
+  .docs{
+    margin-top:40px;
+    border:2px solid var(--ink);
+    border-radius:16px;
+    overflow:hidden;
+    background:#fff;
+  }
+  .docs summary{
+    cursor:pointer;
+    padding:16px 20px;
+    font-weight:800;
+    list-style:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--paper-dark);
+  }
+  .docs summary::-webkit-details-marker{display:none;}
+  .docs summary::after{
+    content:"+";
+    font-size:20px;
+  }
+  .docs[open] summary::after{content:"–";}
+  .docs-body{
+    padding:20px;
+    font-size:14.5px;
+    line-height:1.7;
+    color:var(--ink-soft);
+  }
+  .docs-body h4{color:var(--ink); margin:16px 0 6px;}
+  .docs-body code{
+    background:var(--paper-dark);
+    padding:1px 6px;
+    border-radius:4px;
+    font-size:13px;
+  }
+
+  @media (max-width:520px){
+    .levels{flex-direction:column;}
+    .card, .out-card{padding:18px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="badge">concept explainer</span>
+    <h1>Say <span>"aha!"</span> in one session</h1>
+    <p class="sub">Drop in anything confusing. Pick your level. Get a picture, a story, and the plain-English version — no fluff, occasional jokes.</p>
+  </header>
+
+  <div class="card">
+    <label for="topic">What's stumping you?</label>
+    <textarea id="topic" placeholder="e.g. Why does a plane actually fly? / Recursion / The French Revolution causes / Photosynthesis"></textarea>
+
+    <label style="margin-top:18px;">Your level</label>
+    <div class="levels" id="levels">
+      <button class="level-btn" data-level="beginner">🌱 Beginner</button>
+      <button class="level-btn active" data-level="intermediate">🌿 Intermediate</button>
+      <button class="level-btn" data-level="advanced">🌳 Advanced</button>
+    </div>
+
+    <button class="go-btn" id="go-btn">Explain it to me →</button>
+  </div>
+
+  <div id="error-state"></div>
+
+  <div id="empty-state">
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="38" stroke="#22283B" stroke-width="2" stroke-dasharray="6 6"/>
+      <path d="M35 55 Q50 30 65 55" stroke="#FF6B5E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="40" cy="45" r="3" fill="#22283B"/>
+      <circle cx="60" cy="45" r="3" fill="#22283B"/>
+    </svg>
+    <p>Type a topic above and I'll sketch it out for you.</p>
+  </div>
+
+  <div id="loading">
+    <svg class="pencil" viewBox="0 0 64 64" fill="none">
+      <rect x="8" y="44" width="40" height="8" rx="2" transform="rotate(-35 8 44)" fill="#FFD23F" stroke="#22283B" stroke-width="2"/>
+      <path d="M44 20 L54 10 L58 14 L48 24 Z" fill="#FF6B5E" stroke="#22283B" stroke-width="2"/>
+    </svg>
+    <p id="loading-text">Sketching your explanation…</p>
+  </div>
+
+  <div id="output"></div>
+
+  <details class="docs">
+    <summary>How this was built</summary>
+    <div class="docs-body">
+      <h4>The system prompt ("brain")</h4>
+      <p>The model is instructed to act as a warm, funny concept explainer for students. It always returns <code>strict JSON</code> (topic title, one-line analogy, a simple SVG-friendly diagram spec, layered text sections, common mistakes, and a "go deeper" prompt) so the UI can render a purpose-built card instead of a wall of chat text. Constraints include: refuse harmful/unrelated requests politely, ask a clarifying follow-up only when the topic is truly too vague (e.g. a single ambiguous word), never fabricate facts it's unsure of, and match tone/depth to the selected level (beginner/intermediate/advanced).</p>
+
+      <h4>Why this UI</h4>
+      <p>A generic chat bubble UI would hide the thing students actually need: a visual anchor. This layout leads with a hand-drawn-style diagram and a highlighted analogy line before any paragraph text, mirroring how a good tutor sketches on a napkin before lecturing. The notebook/sticky-note aesthetic (dashed borders, rotated cards, highlighter strokes) signals "informal learning tool" rather than "corporate chatbot," which matches the playful tone requested.</p>
+
+      <h4>Extending this</h4>
+      <ul>
+        <li><strong>Memory:</strong> store past topics in localStorage or a backend, and feed a short "things you've already learned" list into the prompt so explanations can build on prior sessions.</li>
+        <li><strong>Tools:</strong> add a web_search tool call before generation for fast-moving topics (current events, latest tech) so explanations stay accurate.</li>
+        <li><strong>Multi-step flow:</strong> turn the "go deeper" section into a real follow-up input that re-calls the API with conversation history, enabling a Socratic back-and-forth instead of one-shot answers.</li>
+        <li><strong>Quizzing:</strong> add a "test me" button that calls the API again asking for 3 quick check-for-understanding questions based on the same JSON output.</li>
+      </ul>
+    </div>
+  </details>
+
+</div>
+
+<script>
+const SYSTEM_PROMPT = `You are "Aha", a concept explainer for students. Your job: take any topic, question, or confusing snippet of notes and make it click in one short session.
+
+TONE: Playful, warm, a little funny — like a favorite tutor who cracks jokes but never wastes your time. Never condescending. Never filler ("Great question!").
+
+LEVEL ADAPTATION:
+- beginner: zero jargon, everyday analogies, short sentences.
+- intermediate: normal academic vocabulary, one solid analogy, a bit more depth and nuance.
+- advanced: precise terminology, edge cases, why it actually matters / where it's commonly misunderstood even by advanced students.
+
+OUTPUT FORMAT — respond with STRICT JSON ONLY, no markdown fences, no prose outside the JSON, matching exactly this shape:
+{
+  "topic_title": "short clean title of the concept",
+  "analogy_line": "one punchy sentence analogy (max ~20 words)",
+  "diagram": {
+    "type": "one of: cycle | comparison | flow | hierarchy | none",
+    "labels": ["2 to 5 short labels for the diagram nodes/steps"]
+  },
+  "simple_explanation": "2-4 sentences, plain language, matches the requested level",
+  "deeper_explanation": "2-4 sentences that build on the simple explanation with more depth/mechanism, matches requested level",
+  "example": "one concrete, vivid example or mini scenario illustrating the concept",
+  "common_mistakes": ["1 to 3 short common misconceptions or errors learners make"],
+  "go_deeper_prompt": "one short inviting question or suggestion for what to explore next"
+}
+
+EDGE CASES:
+- If input is empty, gibberish, or not a real topic: set topic_title to "Hmm, try again?" and use simple_explanation to briefly and kindly ask for a real topic or question. Leave other fields as short empty-ish placeholders (empty arrays, diagram type "none").
+- If input requests something harmful, hateful, or clearly outside educational scope (e.g. weapons instructions, explicit content): set topic_title to "Let's pick something else" and simple_explanation politely declining and redirecting to ask for a learning topic instead. Do not explain how to do the harmful thing.
+- If the topic is extremely broad (e.g. just "science" or "history"): still give your best general-orientation explanation at the chosen level, and use go_deeper_prompt to suggest 2-3 narrower angles they could explore.
+- Never fabricate specific statistics, dates, or citations you are not confident about — speak in general, correct terms instead.
+- Always return valid JSON that matches the schema exactly, with no trailing commentary.`;
+
+const levelsEl = document.getElementById('levels');
+let selectedLevel = 'intermediate';
+levelsEl.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.level-btn');
+  if(!btn) return;
+  document.querySelectorAll('.level-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedLevel = btn.dataset.level;
+});
+
+const goBtn = document.getElementById('go-btn');
+const topicEl = document.getElementById('topic');
+const emptyState = document.getElementById('empty-state');
+const loading = document.getElementById('loading');
+const errorState = document.getElementById('error-state');
+const output = document.getElementById('output');
+
+const loadingLines = [
+  "Sketching your explanation…",
+  "Hunting for the perfect analogy…",
+  "Untangling the jargon…",
+  "Doodling a diagram…"
+];
+
+goBtn.addEventListener('click', explain);
+topicEl.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && (e.metaKey || e.ctrlKey)) explain();
+});
+
+async function explain(){
+  const topic = topicEl.value.trim();
+  if(!topic){
+    topicEl.style.borderColor = '#FF6B5E';
+    topicEl.placeholder = "Type something first — I can't read minds (yet).";
+    setTimeout(()=>{ topicEl.style.borderColor = ''; }, 1500);
+    return;
+  }
+
+  errorState.style.display = 'none';
+  emptyState.style.display = 'none';
+  output.style.display = 'none';
+  loading.style.display = 'block';
+  document.getElementById('loading-text').textContent =
+    loadingLines[Math.floor(Math.random()*loadingLines.length)];
+  goBtn.disabled = true;
+  goBtn.textContent = 'Thinking…';
+
+  try{
+    const userMsg = `Level: ${selectedLevel}\nTopic/question: ${topic}`;
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: userMsg }]
+      })
+    });
+
+    if(!response.ok){
+      throw new Error("The API said no (status " + response.status + "). Try again in a moment.");
+    }
+
+    const data = await response.json();
+    const textBlock = (data.content || []).find(b => b.type === 'text');
+    if(!textBlock){ throw new Error("Got an empty response back. Try rephrasing your topic."); }
+
+    let clean = textBlock.text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+    let parsed;
+    try{
+      parsed = JSON.parse(clean);
+    }catch(e){
+      throw new Error("Couldn't parse the explanation. Try again?");
+    }
+
+    renderOutput(parsed);
+  }catch(err){
+    errorState.textContent = "⚠️ " + (err.message || "Something went wrong.");
+    errorState.style.display = 'block';
+    emptyState.style.display = 'block';
+  }finally{
+    loading.style.display = 'none';
+    goBtn.disabled = false;
+    goBtn.textContent = 'Explain it to me →';
+  }
+}
+
+function renderOutput(d){
+  const labels = (d.diagram && d.diagram.labels) || [];
+  const diagramType = (d.diagram && d.diagram.type) || 'none';
+
+  output.innerHTML = `
+    <div class="out-card">
+      <div class="eyebrow">${escapeHtml(selectedLevel)} · explanation</div>
+      <h2 class="topic-title">${escapeHtml(d.topic_title || 'Untitled')}</h2>
+
+      ${labels.length ? `<div class="diagram-box">${buildDiagramSVG(diagramType, labels)}</div>` : ''}
+
+      ${d.analogy_line ? `<p><span class="analogy-line">${escapeHtml(d.analogy_line)}</span></p>` : ''}
+
+      ${d.simple_explanation ? `
+      <div class="section-block">
+        <h3>🌱 The simple version</h3>
+        <p>${escapeHtml(d.simple_explanation)}</p>
+      </div>` : ''}
+
+      ${d.deeper_explanation ? `
+      <div class="section-block">
+        <h3>🔍 A bit deeper</h3>
+        <p>${escapeHtml(d.deeper_explanation)}</p>
+      </div>` : ''}
+
+      ${d.example ? `
+      <div class="section-block">
+        <h3>💡 In action</h3>
+        <p>${escapeHtml(d.example)}</p>
+      </div>` : ''}
+
+      ${(d.common_mistakes && d.common_mistakes.length) ? `
+      <div class="mistakes">
+        <h3>⚠️ Watch out for</h3>
+        <ul>${d.common_mistakes.map(m=>`<li>${escapeHtml(m)}</li>`).join('')}</ul>
+      </div>` : ''}
+
+      ${d.go_deeper_prompt ? `
+      <div class="go-deeper">
+        <h3>🚀 Go deeper</h3>
+        <p>${escapeHtml(d.go_deeper_prompt)}</p>
+      </div>` : ''}
+
+      <div style="margin-top:24px; text-align:center;">
+        <button class="again-btn" onclick="document.getElementById('topic').focus(); document.getElementById('topic').select();">Ask about something else</button>
+      </div>
+    </div>
+  `;
+  output.style.display = 'block';
+  output.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function buildDiagramSVG(type, labels){
+  const colors = ['#FF6B5E','#FFD23F','#7CAE8E','#8AA1E0','#C68CDA'];
+  const w = 560, h = 160;
+  const n = labels.length;
+  let nodes = '';
+  let connectors = '';
+
+  if(type === 'cycle'){
+    const cx = w/2, cy = h/2, r = 58;
+    labels.forEach((label,i)=>{
+      const angle = (i / n) * 2 * Math.PI - Math.PI/2;
+      const x = cx + r*Math.cos(angle);
+      const y = cy + r*Math.sin(angle);
+      nodes += node(x,y,label,colors[i%colors.length]);
+      const next = (i+1)%n;
+      const angle2 = (next / n) * 2 * Math.PI - Math.PI/2;
+      const x2 = cx + r*Math.cos(angle2);
+      const y2 = cy + r*Math.sin(angle2);
+      connectors += `<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" stroke="#22283B" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+    });
+  } else if(type === 'hierarchy'){
+    labels.forEach((label,i)=>{
+      const x = 70 + (i * (w-140)/Math.max(n-1,1));
+      const y = i===0 ? 30 : 30 + (i*30);
+      nodes += node(x, 40 + i*38, label, colors[i%colors.length]);
+      if(i>0) connectors += `<line x1="${w/2}" y1="${40+(i-1)*38+16}" x2="${w/2}" y2="${40+i*38-16}" stroke="#22283B" stroke-width="1.5"/>`;
+    });
+  } else {
+    // flow / comparison / default: horizontal row with arrows
+    labels.forEach((label,i)=>{
+      const x = 60 + i * ((w-120)/Math.max(n-1,1));
+      const y = h/2;
+      nodes += node(x,y,label,colors[i%colors.length]);
+      if(i < n-1){
+        const x2 = 60 + (i+1) * ((w-120)/Math.max(n-1,1));
+        connectors += `<line x1="${x+38}" y1="${y}" x2="${x2-38}" y2="${y}" stroke="#22283B" stroke-width="2" marker-end="url(#arrow)"/>`;
+      }
+    });
+  }
+
+  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:${w}px;">
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 Z" fill="#22283B"/>
+      </marker>
+    </defs>
+    ${connectors}
+    ${nodes}
+  </svg>`;
+}
+
+function node(x,y,label,color){
+  const words = label.length > 14 ? label.slice(0,13)+'…' : label;
+  return `
+    <g>
+      <circle cx="${x}" cy="${y}" r="34" fill="${color}" fill-opacity="0.25" stroke="${color}" stroke-width="2"/>
+      <text x="${x}" y="${y+4}" text-anchor="middle" font-size="11.5" font-weight="700" fill="#22283B" font-family="Segoe UI, sans-serif">${escapeHtml(words)}</text>
+    </g>`;
+}
+
+function escapeHtml(str){
+  if(typeof str !== 'string') return '';
+  return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+</script>
+</body>
+</html>
