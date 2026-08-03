@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Learning Studio — Python OOP</title>
+<style>
+  :root{
+    --bg:#0b1220;
+    --bg-panel:#111a2e;
+    --bg-panel-2:#0e1626;
+    --line:#2c4162;
+    --line-soft:#1c2b45;
+    --cyan:#5ec8d8;
+    --cyan-dim:#3a8a97;
+    --amber:#f2a65a;
+    --amber-dim:#c9823f;
+    --text:#e8edf5;
+    --text-dim:#93a1b8;
+    --text-faint:#5c6b85;
+    --good:#6fcf97;
+    --bad:#e8697d;
+    --radius:10px;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Cascadia Code", monospace;
+    --disp: "Trebuchet MS", "Segoe UI Semibold", Verdana, sans-serif;
+    --body: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0/40px 40px,
+      var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.6;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+  }
+  a{color:var(--cyan);}
+  .wrap{max-width:980px;margin:0 auto;padding:0 24px;}
+  ::selection{background:var(--cyan);color:#04141a;}
+
+  /* Top bar */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(11,18,32,.9);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .topbar-inner{max-width:980px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:16px;justify-content:space-between;}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--disp);letter-spacing:.06em;text-transform:uppercase;font-size:14px;color:var(--cyan);}
+  .brand svg{flex:none;}
+  .progress-track{flex:1;height:6px;background:var(--line-soft);border-radius:99px;overflow:hidden;max-width:340px;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan-dim),var(--cyan));width:0%;transition:width .5s ease;}
+  .xp-badge{font-family:var(--mono);font-size:12px;color:var(--amber);border:1px solid var(--amber-dim);padding:4px 10px;border-radius:99px;white-space:nowrap;}
+
+  /* Hero */
+  .hero{padding:64px 0 40px;position:relative;}
+  .eyebrow{font-family:var(--mono);color:var(--cyan);font-size:12px;letter-spacing:.15em;text-transform:uppercase;border-left:2px solid var(--cyan);padding-left:10px;}
+  h1.title{font-family:var(--disp);font-size:clamp(32px,6vw,52px);line-height:1.05;margin:18px 0 8px;letter-spacing:-.01em;}
+  h1.title .accent{color:var(--cyan);}
+  .subtitle{color:var(--text-dim);font-size:17px;max-width:620px;margin-bottom:32px;}
+
+  .blueprint-card{
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+    background:var(--bg-panel);
+    padding:20px;
+    position:relative;
+  }
+  .blueprint-card::before{
+    content:attr(data-label);
+    position:absolute;top:-11px;left:14px;background:var(--bg);
+    padding:0 8px;font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.08em;text-transform:uppercase;
+  }
+  .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-top:24px;}
+  .info-item{padding:14px;background:var(--bg-panel-2);border-radius:8px;border:1px solid var(--line-soft);}
+  .info-item .k{font-family:var(--mono);font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;}
+  .info-item .v{font-size:15px;margin-top:6px;color:var(--text);}
+  .obj-list{margin:10px 0 0;padding-left:20px;color:var(--text-dim);}
+  .obj-list li{margin-bottom:6px;}
+
+  .reward-strip{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;}
+  .reward-chip{display:flex;align-items:center;gap:8px;background:var(--bg-panel-2);border:1px solid var(--line-soft);border-radius:99px;padding:8px 14px;font-size:13px;color:var(--text-dim);}
+  .reward-chip .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);}
+
+  .start-btn{
+    margin-top:28px;display:inline-flex;align-items:center;gap:10px;
+    background:var(--cyan);color:#04141a;font-family:var(--disp);letter-spacing:.04em;
+    padding:14px 26px;border-radius:8px;border:none;font-size:15px;cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .start-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px -8px rgba(94,200,216,.5);}
+  .start-btn:focus-visible, button:focus-visible, .opt-btn:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+
+  /* Module sections */
+  section.module{padding:70px 0;border-top:1px solid var(--line-soft);scroll-margin-top:80px;}
+  section.module.locked{opacity:.35;pointer-events:none;filter:grayscale(.6);}
+  .mod-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+  .mod-num{font-family:var(--mono);color:var(--text-faint);font-size:14px;}
+  .mod-title{font-family:var(--disp);font-size:clamp(24px,4vw,34px);letter-spacing:-.01em;}
+  .mod-tag{font-family:var(--mono);font-size:11px;color:var(--amber);border:1px solid var(--amber-dim);padding:3px 9px;border-radius:99px;text-transform:uppercase;}
+  .mod-desc{color:var(--text-dim);max-width:680px;margin-bottom:36px;}
+
+  h3.section-h{font-family:var(--disp);font-size:19px;color:var(--cyan);margin:36px 0 12px;display:flex;align-items:center;gap:8px;}
+  h3.section-h::before{content:"";width:18px;height:1px;background:var(--cyan-dim);}
+
+  p{color:var(--text);}
+  .dim{color:var(--text-dim);}
+
+  pre.code{
+    background:#08101d;border:1px solid var(--line-soft);border-radius:8px;
+    padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.6;
+    color:#c9e6ec;
+  }
+  pre.code .cm{color:var(--text-faint);}
+  pre.code .kw{color:#f2a65a;}
+  pre.code .fn{color:#8fd3e0;}
+  pre.code .str{color:#a8d99b;}
+  pre.code .cls{color:#e8a5d4;}
+
+  .analogy{
+    display:flex;gap:14px;background:var(--bg-panel-2);border-left:3px solid var(--amber);
+    padding:16px 18px;border-radius:0 8px 8px 0;margin:18px 0;
+  }
+  .analogy .icon{font-size:22px;flex:none;}
+  .analogy strong{color:var(--amber);}
+
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0;}
+  @media(max-width:640px){.compare{grid-template-columns:1fr;}}
+  .compare .col{border:1px solid var(--line-soft);border-radius:8px;padding:14px 16px;background:var(--bg-panel-2);}
+  .compare .col h4{margin:0 0 8px;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.06em;}
+  .compare .col.a h4{color:var(--cyan);}
+  .compare .col.b h4{color:var(--amber);}
+
+  .misconception{
+    border:1px solid var(--bad);border-radius:8px;padding:14px 16px;margin:14px 0;background:rgba(232,105,125,.06);
+  }
+  .misconception .lbl{font-family:var(--mono);font-size:11px;color:var(--bad);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+
+  .takeaways{background:var(--bg-panel-2);border:1px solid var(--line-soft);border-radius:8px;padding:18px 20px;margin:20px 0;}
+  .takeaways ul{margin:8px 0 0;padding-left:20px;}
+  .takeaways li{margin-bottom:6px;color:var(--text-dim);}
+
+  .exercise{border:1px dashed var(--cyan-dim);border-radius:8px;padding:18px 20px;margin:20px 0;background:rgba(94,200,216,.04);}
+  .exercise .lbl{font-family:var(--mono);font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+  .exercise textarea{
+    width:100%;min-height:110px;background:#08101d;color:var(--text);border:1px solid var(--line-soft);
+    border-radius:6px;padding:12px;font-family:var(--mono);font-size:13px;resize:vertical;
+  }
+  .reveal-btn{margin-top:10px;background:transparent;border:1px solid var(--cyan-dim);color:var(--cyan);padding:8px 14px;border-radius:6px;font-family:var(--mono);font-size:12px;cursor:pointer;}
+  .reveal-btn:hover{background:rgba(94,200,216,.1);}
+  .solution{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft);}
+  .solution.show{display:block;}
+
+  /* Diagram containers */
+  .diagram{background:var(--bg-panel-2);border:1px solid var(--line-soft);border-radius:8px;padding:20px;margin:20px 0;overflow-x:auto;}
+  .diagram svg{display:block;margin:0 auto;max-width:100%;height:auto;}
+
+  /* Interactive widgets */
+  .widget{border:1px solid var(--line-soft);border-radius:8px;padding:18px 20px;margin:20px 0;background:var(--bg-panel-2);}
+  .widget .lbl{font-family:var(--mono);font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+  .attr-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+  .attr-row input[type=text]{background:#08101d;border:1px solid var(--line-soft);color:var(--text);padding:8px 10px;border-radius:6px;font-family:var(--mono);font-size:13px;}
+  .attr-row label{font-size:12px;color:var(--text-faint);width:70px;}
+  .btn-sm{background:var(--cyan);color:#04141a;border:none;padding:8px 14px;border-radius:6px;font-family:var(--disp);font-size:12px;cursor:pointer;letter-spacing:.03em;}
+  .out{margin-top:12px;font-family:var(--mono);font-size:13px;background:#08101d;padding:10px 12px;border-radius:6px;color:var(--good);min-height:20px;}
+
+  /* Quiz */
+  .quiz{margin-top:48px;border:1px solid var(--line);border-radius:var(--radius);padding:26px 26px 22px;background:var(--bg-panel);position:relative;}
+  .quiz::before{content:"Knowledge Check";position:absolute;top:-11px;left:16px;background:var(--bg);padding:0 8px;font-family:var(--mono);font-size:11px;color:var(--amber);text-transform:uppercase;letter-spacing:.08em;}
+  .q-block{margin-bottom:26px;}
+  .q-block:last-of-type{margin-bottom:12px;}
+  .q-text{font-size:15.5px;margin-bottom:12px;font-weight:600;}
+  .opt-btn{
+    display:block;width:100%;text-align:left;background:var(--bg-panel-2);border:1px solid var(--line-soft);
+    color:var(--text);padding:11px 14px;border-radius:6px;margin-bottom:8px;cursor:pointer;font-size:14px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .opt-btn:hover{border-color:var(--cyan-dim);}
+  .opt-btn.correct{border-color:var(--good);background:rgba(111,207,151,.1);}
+  .opt-btn.incorrect{border-color:var(--bad);background:rgba(232,105,125,.1);}
+  .opt-btn:disabled{cursor:default;}
+  .q-explain{display:none;margin-top:8px;padding:10px 12px;background:var(--bg-panel-2);border-left:3px solid var(--cyan-dim);border-radius:0 6px 6px 0;font-size:13.5px;color:var(--text-dim);}
+  .q-explain.show{display:block;}
+  .quiz-submit{background:var(--amber);color:#241300;border:none;padding:11px 22px;border-radius:6px;font-family:var(--disp);cursor:pointer;font-size:14px;letter-spacing:.03em;}
+  .quiz-submit:disabled{opacity:.4;cursor:not-allowed;}
+  .quiz-result{display:none;margin-top:18px;padding:16px 18px;border-radius:8px;font-size:14px;}
+  .quiz-result.show{display:block;}
+  .quiz-result.pass{background:rgba(111,207,151,.1);border:1px solid var(--good);}
+  .quiz-result.fail{background:rgba(232,105,125,.1);border:1px solid var(--bad);}
+  .unlock-btn{margin-top:14px;background:var(--cyan);color:#04141a;border:none;padding:11px 22px;border-radius:6px;font-family:var(--disp);cursor:pointer;font-size:14px;}
+
+  /* Final section */
+  .final{padding:70px 0;border-top:1px solid var(--line-soft);}
+  .cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:640px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{border:1px solid var(--line-soft);border-radius:8px;padding:16px;background:var(--bg-panel-2);}
+  .cheat-card h4{margin:0 0 8px;color:var(--cyan);font-family:var(--mono);font-size:13px;text-transform:uppercase;}
+  .cheat-card pre{margin:0;background:none;border:none;padding:0;}
+
+  .resource-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:14px;}
+  .resource-card{border:1px solid var(--line-soft);border-radius:8px;padding:16px;background:var(--bg-panel-2);}
+  .resource-card h4{margin:0 0 10px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--amber);letter-spacing:.06em;}
+  .resource-card ul{margin:0;padding-left:18px;color:var(--text-dim);font-size:14px;}
+  .resource-card li{margin-bottom:6px;}
+
+  .keywords{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .keyword{font-family:var(--mono);font-size:12px;background:var(--bg-panel-2);border:1px solid var(--line-soft);padding:5px 10px;border-radius:99px;color:var(--text-dim);}
+
+  .print-btn{background:transparent;border:1px solid var(--cyan-dim);color:var(--cyan);padding:10px 18px;border-radius:6px;font-family:var(--mono);font-size:12.5px;cursor:pointer;margin-top:10px;}
+
+  footer{text-align:center;padding:40px 0 60px;color:var(--text-faint);font-size:13px;font-family:var(--mono);}
+
+  @media print{
+    .topbar, .start-btn, .quiz, .widget, .print-btn{display:none !important;}
+    body{background:#fff;color:#000;}
+    section.module{border:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="1.5" stroke="#5ec8d8" stroke-width="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.5" stroke="#5ec8d8" stroke-width="1.6"/><path d="M7 11v4a2 2 0 002 2h6a2 2 0 002-2v-4" stroke="#5ec8d8" stroke-width="1.6"/></svg>
+      OOP Blueprint
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="xp-badge" id="xpBadge">0 XP</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">Python · Object-Oriented Programming</div>
+    <h1 class="title">Object-Oriented Programming, <span class="accent">the way Python actually uses it.</span></h1>
+    <p class="subtitle">A complete, hands-on tutorial that takes you from your first <code>class</code> statement to abstract base classes and design patterns — with runnable examples, diagrams, and checks along the way.</p>
+
+    <div class="blueprint-card" data-label="Tutorial Specification">
+      <h3 class="section-h" style="margin-top:0;">Learning objectives</h3>
+      <ul class="obj-list">
+        <li>Define classes and instantiate objects, understanding exactly what <code>self</code> does</li>
+        <li>Apply the four pillars: encapsulation, inheritance, polymorphism, and abstraction</li>
+        <li>Distinguish instance vs. class attributes, and instance/class/static methods</li>
+        <li>Use Python's dunder (magic) methods to make your own objects behave like built-ins</li>
+        <li>Navigate multiple inheritance safely using the Method Resolution Order (MRO)</li>
+        <li>Recognize when composition is a better tool than inheritance</li>
+      </ul>
+
+      <div class="info-grid">
+        <div class="info-item"><div class="k">Estimated time</div><div class="v">70–90 minutes</div></div>
+        <div class="info-item"><div class="k">Prerequisites</div><div class="v">Basic Python: variables, functions, if/for</div></div>
+        <div class="info-item"><div class="k">Format</div><div class="v">4 modules · 16 quiz questions</div></div>
+        <div class="info-item"><div class="k">Outcome</div><div class="v">Design your own class hierarchies confidently</div></div>
+      </div>
+
+      <div class="reward-strip">
+        <div class="reward-chip"><span class="dot"></span>Earn XP for every correct answer</div>
+        <div class="reward-chip"><span class="dot"></span>Unlock modules as you pass each quiz</div>
+        <div class="reward-chip"><span class="dot"></span>Collect a completion badge per module</div>
+        <div class="reward-chip"><span class="dot"></span>Final challenge + printable cheat sheet</div>
+      </div>
+    </div>
+
+    <button class="start-btn" onclick="document.getElementById('mod1').scrollIntoView()">Begin Module 1 →</button>
+  </section>
+
+  <!-- ============ MODULE 1 ============ -->
+  <section class="module" id="mod1">
+    <div class="mod-head">
+      <span class="mod-num">01</span>
+      <h2 class="mod-title">Foundations — Classes &amp; Objects</h2>
+      <span class="mod-tag">Beginner</span>
+    </div>
+    <p class="mod-desc">Before the "four pillars," you need the raw mechanics: what a class actually is, how Python builds an object from it, and why <code>self</code> shows up everywhere.</p>
+
+    <h3 class="section-h">What is a class?</h3>
+    <p>A <strong>class</strong> is a blueprint. It doesn't hold any data on its own — it describes what data (<em>attributes</em>) and behavior (<em>methods</em>) every object built from it will have. An <strong>object</strong> (or <em>instance</em>) is a concrete thing built from that blueprint, with its own copy of the data.</p>
+
+    <div class="analogy"><div class="icon">📐</div><div><strong>Analogy:</strong> a class is an architect's blueprint for a house. The blueprint specifies "2 bedrooms, 1 kitchen" but you can't sleep in a blueprint. Each house actually built from it — 12 Oak St, 14 Oak St — is an object: same structure, its own address and furniture.</div></div>
+
+    <pre class="code"><span class="kw">class</span> <span class="cls">Dog</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, name, breed):
+        self.name = name          <span class="cm"># instance attribute</span>
+        self.breed = breed
+        self.energy = 100
+
+    <span class="kw">def</span> <span class="fn">bark</span>(self):
+        <span class="kw">return</span> <span class="str">f"{self.name} says Woof!"</span>
+
+<span class="cm"># Building objects from the blueprint</span>
+rex = Dog(<span class="str">"Rex"</span>, <span class="str">"Labrador"</span>)
+mia = Dog(<span class="str">"Mia"</span>, <span class="str">"Poodle"</span>)
+
+<span class="kw">print</span>(rex.bark())   <span class="cm"># Rex says Woof!</span>
+<span class="kw">print</span>(mia.name)   <span class="cm"># Mia</span></pre>
+
+    <h3 class="section-h">Why <code>self</code> is everywhere</h3>
+    <p><code>self</code> is simply the object the method was called on. When you write <code>rex.bark()</code>, Python translates it behind the scenes to <code>Dog.bark(rex)</code> — that's the whole trick. <code>self</code> is a parameter like any other; the name is just a very strong convention, not a keyword.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="20" width="200" height="180" rx="6" fill="none" stroke="#3d5a80" stroke-dasharray="4 3"/>
+        <text x="120" y="45" text-anchor="middle" fill="#5ec8d8" font-family="ui-monospace,monospace" font-size="12">class Dog</text>
+        <text x="35" y="75" fill="#e8edf5" font-family="ui-monospace,monospace" font-size="11">name</text>
+        <text x="35" y="95" fill="#e8edf5" font-family="ui-monospace,monospace" font-size="11">breed</text>
+        <text x="35" y="115" fill="#e8edf5" font-family="ui-monospace,monospace" font-size="11">energy</text>
+        <text x="35" y="145" fill="#f2a65a" font-family="ui-monospace,monospace" font-size="11">bark()</text>
+
+        <path d="M220 60 L340 60" stroke="#5ec8d8" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="280" y="50" text-anchor="middle" fill="#93a1b8" font-family="ui-monospace,monospace" font-size="10">Dog("Rex","Lab")</text>
+
+        <rect x="350" y="20" width="150" height="90" rx="6" fill="#0e1626" stroke="#5ec8d8"/>
+        <text x="425" y="42" text-anchor="middle" fill="#5ec8d8" font-family="ui-monospace,monospace" font-size="12">rex</text>
+        <text x="365" y="65" fill="#a8d99b" font-family="ui-monospace,monospace" font-size="11">name="Rex"</text>
+        <text x="365" y="85" fill="#a8d99b" font-family="ui-monospace,monospace" font-size="11">breed="Lab"</text>
+
+        <path d="M220 150 L340 150" stroke="#e8a5d4" stroke-width="1.5" marker-end="url(#arrow2)"/>
+        <text x="280" y="140" text-anchor="middle" fill="#93a1b8" font-family="ui-monospace,monospace" font-size="10">Dog("Mia","Poodle")</text>
+
+        <rect x="350" y="115" width="150" height="90" rx="6" fill="#0e1626" stroke="#e8a5d4"/>
+        <text x="425" y="137" text-anchor="middle" fill="#e8a5d4" font-family="ui-monospace,monospace" font-size="12">mia</text>
+        <text x="365" y="160" fill="#a8d99b" font-family="ui-monospace,monospace" font-size="11">name="Mia"</text>
+        <text x="365" y="180" fill="#a8d99b" font-family="ui-monospace,monospace" font-size="11">breed="Poodle"</text>
+
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5ec8d8"/></marker>
+          <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e8a5d4"/></marker>
+        </defs>
+      </svg>
+    </div>
+
+    <h3 class="section-h">Class attributes vs. instance attributes</h3>
+    <div class="compare">
+      <div class="col a"><h4>Instance attribute</h4><p class="dim">Set on <code>self</code> inside <code>__init__</code>. Each object gets its <em>own</em> value.</p></div>
+      <div class="col b"><h4>Class attribute</h4><p class="dim">Defined directly in the class body. <em>Shared</em> by every object unless overridden.</p></div>
+    </div>
+    <pre class="code"><span class="kw">class</span> <span class="cls">Dog</span>:
+    species = <span class="str">"Canis familiaris"</span>   <span class="cm"># class attribute — shared</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, name):
+        self.name = name                <span class="cm"># instance attribute — unique</span></pre>
+
+    <div class="misconception">
+      <div class="lbl">Common misconception</div>
+      "Objects and classes are the same thing." They're not — the class is the definition, the object is the built thing. A second misconception: beginners often mutate a <em>mutable</em> class attribute (like a list) thinking each object gets its own copy — it doesn't, they all share the same list unless you set it in <code>__init__</code>.
+    </div>
+
+    <div class="exercise">
+      <div class="lbl">Practical exercise</div>
+      <p>Write a <code>BankAccount</code> class with an <code>__init__</code> that takes <code>owner</code> and <code>balance</code>, and a method <code>deposit(amount)</code> that increases the balance. Sketch it below.</p>
+      <textarea placeholder="class BankAccount:&#10;    def __init__(self, owner, balance):&#10;        ..."></textarea>
+      <button class="reveal-btn" onclick="this.nextElementSibling.classList.toggle('show')">Show a model solution</button>
+      <div class="solution">
+        <pre class="code"><span class="kw">class</span> <span class="cls">BankAccount</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, owner, balance=0):
+        self.owner = owner
+        self.balance = balance
+
+    <span class="kw">def</span> <span class="fn">deposit</span>(self, amount):
+        self.balance += amount
+        <span class="kw">return</span> self.balance</pre>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="lbl">Try it: build an object</div>
+      <div class="attr-row"><label>name</label><input type="text" id="w1name" value="Rex"></div>
+      <div class="attr-row"><label>breed</label><input type="text" id="w1breed" value="Labrador"></div>
+      <button class="btn-sm" onclick="runW1()">Instantiate Dog(name, breed)</button>
+      <div class="out" id="w1out">→ click the button to build an object</div>
+    </div>
+
+    <div class="takeaways">
+      <h3 class="section-h" style="margin-top:0;">Key takeaways</h3>
+      <ul>
+        <li>A class is a blueprint; an object is a concrete instance built from it</li>
+        <li><code>self</code> refers to the specific object a method is running on</li>
+        <li>Instance attributes live per-object; class attributes are shared</li>
+      </ul>
+    </div>
+
+    <div class="quiz" id="quiz1">
+      <div class="q-block" data-correct="1">
+        <div class="q-text">1. What does <code>self</code> represent inside a method?</div>
+        <button class="opt-btn">The class itself</button>
+        <button class="opt-btn">The specific object the method is called on</button>
+        <button class="opt-btn">A reserved Python keyword</button>
+        <button class="opt-btn">The module the class lives in</button>
+        <div class="q-explain">Correct answer: "The specific object the method is called on." <code>self</code> is just a parameter name by convention — <code>rex.bark()</code> is really <code>Dog.bark(rex)</code>.</div>
+      </div>
+      <div class="q-block" data-correct="2">
+        <div class="q-text">2. Where should you put an attribute that must be unique to every object?</div>
+        <button class="opt-btn">Directly in the class body</button>
+        <button class="opt-btn">In a separate global variable</button>
+        <button class="opt-btn">On <code>self</code>, inside <code>__init__</code></button>
+        <button class="opt-btn">In a decorator</button>
+        <div class="q-explain">Correct answer: "On self, inside __init__." Attributes set on <code>self</code> during initialization belong to that one instance only.</div>
+      </div>
+      <div class="q-block" data-correct="0">
+        <div class="q-text">3. Two <code>Dog</code> objects both change a shared <em>class</em> attribute list. What happens?</div>
+        <button class="opt-btn">Both objects see the change — they share the same list</button>
+        <button class="opt-btn">Each object silently gets its own copy</button>
+        <button class="opt-btn">Python raises an error</button>
+        <button class="opt-btn">Only the first object created is affected</button>
+        <div class="q-explain">Correct answer: "Both objects see the change." Class attributes are shared across all instances unless a method explicitly assigns a new value to <code>self.attr</code>.</div>
+      </div>
+      <div class="q-block" data-correct="3">
+        <div class="q-text">4. What best describes the relationship between a class and an object?</div>
+        <button class="opt-btn">They are interchangeable terms</button>
+        <button class="opt-btn">An object contains many classes</button>
+        <button class="opt-btn">A class can only ever create one object</button>
+        <button class="opt-btn">The class is the blueprint; the object is a built instance of it</button>
+        <div class="q-explain">Correct answer: "The class is the blueprint; the object is a built instance of it." A class can produce any number of independent objects.</div>
+      </div>
+      <button class="quiz-submit" onclick="submitQuiz(1,4)">Submit answers</button>
+      <div class="quiz-result" id="result1"></div>
+    </div>
+  </section>
+
+  <!-- ============ MODULE 2 ============ -->
+  <section class="module locked" id="mod2">
+    <div class="mod-head">
+      <span class="mod-num">02</span>
+      <h2 class="mod-title">The Four Pillars</h2>
+      <span class="mod-tag">Intermediate</span>
+    </div>
+    <p class="mod-desc">Encapsulation, inheritance, polymorphism, and abstraction — the ideas that make OOP more than "functions that live inside classes."</p>
+
+    <h3 class="section-h">Encapsulation</h3>
+    <p>Encapsulation means bundling data with the methods that operate on it, and controlling access to that data. Python doesn't have true "private" attributes — it uses <em>convention</em> and <em>name mangling</em> instead.</p>
+    <pre class="code"><span class="kw">class</span> <span class="cls">Account</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, balance):
+        self._balance = balance     <span class="cm"># _single underscore: "internal use" convention</span>
+        self.__pin = <span class="str">"1234"</span>       <span class="cm"># __double underscore: name-mangled</span>
+
+    <span class="kw">def</span> <span class="fn">withdraw</span>(self, amount):
+        <span class="kw">if</span> amount &lt;= self._balance:
+            self._balance -= amount
+        <span class="kw">return</span> self._balance</pre>
+    <div class="analogy"><div class="icon">🏧</div><div><strong>Analogy:</strong> an ATM. You interact with buttons and a screen (the public method <code>withdraw</code>) — you never reach in and rewire the cash dispenser directly (the internal <code>_balance</code>). The machine controls how its own internals are touched.</div></div>
+
+    <h3 class="section-h">Inheritance</h3>
+    <p>Inheritance lets a class (the <em>subclass</em>) reuse and extend the behavior of another (the <em>superclass</em>), instead of copy-pasting code.</p>
+    <pre class="code"><span class="kw">class</span> <span class="cls">Animal</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, name):
+        self.name = name
+    <span class="kw">def</span> <span class="fn">speak</span>(self):
+        <span class="kw">return</span> <span class="str">f"{self.name} makes a sound"</span>
+
+<span class="kw">class</span> <span class="cls">Cat</span>(Animal):              <span class="cm"># Cat inherits from Animal</span>
+    <span class="kw">def</span> <span class="fn">speak</span>(self):             <span class="cm"># overrides the parent method</span>
+        <span class="kw">return</span> <span class="str">f"{self.name} says Meow"</span></pre>
+
+    <div class="diagram">
+      <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
+        <rect x="180" y="15" width="140" height="50" rx="6" fill="none" stroke="#5ec8d8"/>
+        <text x="250" y="45" text-anchor="middle" fill="#5ec8d8" font-family="ui-monospace,monospace" font-size="13">Animal</text>
+        <path d="M100 150 L240 70" stroke="#3d5a80" stroke-width="1.5" marker-end="url(#a3)"/>
+        <path d="M400 150 L260 70" stroke="#3d5a80" stroke-width="1.5" marker-end="url(#a3)"/>
+        <rect x="30" y="150" width="140" height="45" rx="6" fill="none" stroke="#e8a5d4"/>
+        <text x="100" y="177" text-anchor="middle" fill="#e8a5d4" font-family="ui-monospace,monospace" font-size="13">Cat</text>
+        <rect x="330" y="150" width="140" height="45" rx="6" fill="none" stroke="#f2a65a"/>
+        <text x="400" y="177" text-anchor="middle" fill="#f2a65a" font-family="ui-monospace,monospace" font-size="13">Dog</text>
+        <defs><marker id="a3" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#3d5a80"/></marker></defs>
+      </svg>
+    </div>
+
+    <h3 class="section-h">Polymorphism</h3>
+    <p>Polymorphism means objects of different classes can be used through the <em>same interface</em> — the same method name behaves appropriately for each type.</p>
+    <pre class="code">animals = [Cat(<span class="str">"Tom"</span>), Dog(<span class="str">"Rex"</span>)]
+<span class="kw">for</span> a <span class="kw">in</span> animals:
+    <span class="kw">print</span>(a.speak())     <span class="cm"># each object answers .speak() in its own way</span></pre>
+
+    <h3 class="section-h">Abstraction</h3>
+    <p>Abstraction means exposing only what's necessary and hiding implementation detail. In Python this is often done with the <code>abc</code> module to define a required interface subclasses must implement.</p>
+    <pre class="code"><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="cls">Shape</span>(ABC):
+    <span class="kw">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">area</span>(self): ...   <span class="cm"># subclasses MUST implement this</span></pre>
+
+    <div class="compare">
+      <div class="col a"><h4>Inheritance</h4><p class="dim">"Is-a" relationship. A <code>Cat</code> <em>is an</em> <code>Animal</code>. Reuses a parent's code directly.</p></div>
+      <div class="col b"><h4>Composition</h4><p class="dim">"Has-a" relationship. A <code>Car</code> <em>has an</em> <code>Engine</code>. Builds behavior by combining objects. (More in Module 3.)</p></div>
+    </div>
+
+    <div class="misconception">
+      <div class="lbl">Common misconception</div>
+      "Private attributes in Python are truly inaccessible." They aren't — <code>__pin</code> is only renamed to <code>_Account__pin</code> (name mangling), and can still be accessed if you know that. Python trusts developers rather than enforcing hard walls.
+    </div>
+
+    <div class="exercise">
+      <div class="lbl">Practical exercise</div>
+      <p>Create a <code>Shape</code> superclass with a method <code>describe()</code>, then <code>Circle</code> and <code>Square</code> subclasses that override <code>area()</code>. Sketch the hierarchy.</p>
+      <textarea placeholder="class Shape:&#10;    def describe(self):&#10;        return f'A shape with area {self.area()}'"></textarea>
+      <button class="reveal-btn" onclick="this.nextElementSibling.classList.toggle('show')">Show a model solution</button>
+      <div class="solution">
+        <pre class="code"><span class="kw">class</span> <span class="cls">Shape</span>:
+    <span class="kw">def</span> <span class="fn">describe</span>(self):
+        <span class="kw">return</span> <span class="str">f"A shape with area {self.area():.2f}"</span>
+
+<span class="kw">class</span> <span class="cls">Circle</span>(Shape):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, r): self.r = r
+    <span class="kw">def</span> <span class="fn">area</span>(self): <span class="kw">return</span> 3.14159 * self.r**2
+
+<span class="kw">class</span> <span class="cls">Square</span>(Shape):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, s): self.s = s
+    <span class="kw">def</span> <span class="fn">area</span>(self): <span class="kw">return</span> self.s**2</pre>
+      </div>
+    </div>
+
+    <div class="takeaways">
+      <h3 class="section-h" style="margin-top:0;">Key takeaways</h3>
+      <ul>
+        <li>Encapsulation controls access via convention (<code>_x</code>) and name mangling (<code>__x</code>)</li>
+        <li>Inheritance expresses "is-a" and lets subclasses reuse/override behavior</li>
+        <li>Polymorphism lets different objects respond to the same method call correctly</li>
+        <li>Abstraction defines a required interface without dictating implementation</li>
+      </ul>
+    </div>
+
+    <div class="quiz" id="quiz2">
+      <div class="q-block" data-correct="2">
+        <div class="q-text">1. What happens to <code>self.__pin</code> under the hood?</div>
+        <button class="opt-btn">It's deleted at runtime</button>
+        <button class="opt-btn">It becomes a global variable</button>
+        <button class="opt-btn">It's renamed to <code>_ClassName__pin</code> (name mangling)</button>
+        <button class="opt-btn">It throws a SyntaxError</button>
+        <div class="q-explain">Correct answer: name mangling. Double-underscore attributes are renamed to include the class name, which discourages — but doesn't prevent — outside access.</div>
+      </div>
+      <div class="q-block" data-correct="0">
+        <div class="q-text">2. A <code>Cat</code> subclass overrides <code>speak()</code> from <code>Animal</code>. This is an example of:</div>
+        <button class="opt-btn">Polymorphism</button>
+        <button class="opt-btn">Encapsulation</button>
+        <button class="opt-btn">Name mangling</button>
+        <button class="opt-btn">Composition</button>
+        <div class="q-explain">Correct answer: polymorphism. Calling <code>.speak()</code> on any animal produces the correct behavior for its actual type.</div>
+      </div>
+      <div class="q-block" data-correct="1">
+        <div class="q-text">3. What does declaring an <code>@abstractmethod</code> in an ABC accomplish?</div>
+        <button class="opt-btn">It automatically implements the method</button>
+        <button class="opt-btn">It forces any concrete subclass to implement that method</button>
+        <button class="opt-btn">It hides the method from subclasses</button>
+        <button class="opt-btn">It makes the method run faster</button>
+        <div class="q-explain">Correct answer: it forces subclasses to implement it — trying to instantiate a subclass that doesn't will raise a <code>TypeError</code>.</div>
+      </div>
+      <div class="q-block" data-correct="3">
+        <div class="q-text">4. "A <code>Car</code> has an <code>Engine</code>" best describes which relationship?</div>
+        <button class="opt-btn">Polymorphism</button>
+        <button class="opt-btn">Abstraction</button>
+        <button class="opt-btn">Inheritance</button>
+        <button class="opt-btn">Composition</button>
+        <div class="q-explain">Correct answer: composition — a "has-a" relationship built by holding another object, rather than inheriting from it.</div>
+      </div>
+      <button class="quiz-submit" onclick="submitQuiz(2,4)">Submit answers</button>
+      <div class="quiz-result" id="result2"></div>
+    </div>
+  </section>
+
+  <!-- ============ MODULE 3 ============ -->
+  <section class="module locked" id="mod3">
+    <div class="mod-head">
+      <span class="mod-num">03</span>
+      <h2 class="mod-title">Practical Application</h2>
+      <span class="mod-tag">Advanced</span>
+    </div>
+    <p class="mod-desc">The tools you reach for once you're actually building things: dunder methods, method types, and composition over inheritance.</p>
+
+    <h3 class="section-h">Dunder (magic) methods</h3>
+    <p>Methods surrounded by double underscores let your objects plug into Python's built-in syntax — printing, comparison, arithmetic, and more.</p>
+    <pre class="code"><span class="kw">class</span> <span class="cls">Vector</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, x, y):
+        self.x, self.y = x, y
+
+    <span class="kw">def</span> <span class="fn">__add__</span>(self, other):        <span class="cm"># enables: v1 + v2</span>
+        <span class="kw">return</span> Vector(self.x + other.x, self.y + other.y)
+
+    <span class="kw">def</span> <span class="fn">__repr__</span>(self):             <span class="cm"># enables: print(v1)</span>
+        <span class="kw">return</span> <span class="str">f"Vector({self.x}, {self.y})"</span>
+
+    <span class="kw">def</span> <span class="fn">__eq__</span>(self, other):        <span class="cm"># enables: v1 == v2</span>
+        <span class="kw">return</span> self.x == other.x <span class="kw">and</span> self.y == other.y</pre>
+    <div class="analogy"><div class="icon">🔌</div><div><strong>Analogy:</strong> dunder methods are standardized power sockets. Implement <code>__add__</code> and your object "plugs into" the <code>+</code> operator the same way an integer does — Python doesn't need a special case for your type.</div></div>
+
+    <h3 class="section-h">Instance, class, and static methods</h3>
+    <div class="compare">
+      <div class="col a"><h4>@classmethod</h4><p class="dim">Receives <code>cls</code>, not <code>self</code>. Great for alternative constructors.</p></div>
+      <div class="col b"><h4>@staticmethod</h4><p class="dim">Receives neither. A plain function that lives in the class's namespace for organization.</p></div>
+    </div>
+    <pre class="code"><span class="kw">class</span> <span class="cls">Pizza</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, toppings):
+        self.toppings = toppings
+
+    <span class="kw">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">margherita</span>(cls):                 <span class="cm"># alternative constructor</span>
+        <span class="kw">return</span> cls([<span class="str">"tomato"</span>, <span class="str">"basil"</span>])
+
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">is_valid_topping</span>(name):        <span class="cm"># doesn't need self or cls</span>
+        <span class="kw">return</span> name.lower() != <span class="str">"pineapple"</span></pre>
+
+    <h3 class="section-h">Composition over inheritance</h3>
+    <p>Deep inheritance chains get brittle fast. Composition — building an object out of other objects — is often more flexible.</p>
+    <pre class="code"><span class="kw">class</span> <span class="cls">Engine</span>:
+    <span class="kw">def</span> <span class="fn">start</span>(self): <span class="kw">return</span> <span class="str">"Engine running"</span>
+
+<span class="kw">class</span> <span class="cls">Car</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.engine = Engine()        <span class="cm"># Car HAS an Engine, isn't one</span>
+    <span class="kw">def</span> <span class="fn">start</span>(self):
+        <span class="kw">return</span> self.engine.start()</pre>
+
+    <div class="misconception">
+      <div class="lbl">Common misconception</div>
+      "You should always inherit when two classes share behavior." Prefer composition when the relationship is "has-a" rather than "is-a" — it avoids fragile, deep hierarchies where a change to a base class ripples unpredictably through every subclass.
+    </div>
+
+    <div class="widget">
+      <div class="lbl">Try it: operator overloading with <code>__add__</code></div>
+      <div class="attr-row"><label>x1,y1</label><input type="text" id="w3a" value="1,2" style="width:70px"><label style="width:30px">x2,y2</label><input type="text" id="w3b" value="3,4" style="width:70px"></div>
+      <button class="btn-sm" onclick="runW3()">Compute v1 + v2</button>
+      <div class="out" id="w3out">→ click to add two Vector objects</div>
+    </div>
+
+    <div class="exercise">
+      <div class="lbl">Practical exercise</div>
+      <p>Add a <code>__str__</code> and <code>__lt__</code> (less-than) method to a <code>Money</code> class so <code>Money</code> objects can be printed and sorted by amount.</p>
+      <textarea placeholder="class Money:&#10;    def __init__(self, amount):&#10;        self.amount = amount"></textarea>
+      <button class="reveal-btn" onclick="this.nextElementSibling.classList.toggle('show')">Show a model solution</button>
+      <div class="solution">
+        <pre class="code"><span class="kw">class</span> <span class="cls">Money</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, amount): self.amount = amount
+    <span class="kw">def</span> <span class="fn">__str__</span>(self): <span class="kw">return</span> <span class="str">f"${self.amount:.2f}"</span>
+    <span class="kw">def</span> <span class="fn">__lt__</span>(self, other): <span class="kw">return</span> self.amount &lt; other.amount</pre>
+      </div>
+    </div>
+
+    <div class="takeaways">
+      <h3 class="section-h" style="margin-top:0;">Key takeaways</h3>
+      <ul>
+        <li>Dunder methods let your objects integrate with Python's built-in operators and functions</li>
+        <li><code>@classmethod</code> gets <code>cls</code> (great for factories); <code>@staticmethod</code> gets neither</li>
+        <li>Prefer composition ("has-a") over inheritance ("is-a") when the relationship isn't truly hierarchical</li>
+      </ul>
+    </div>
+
+    <div class="quiz" id="quiz3">
+      <div class="q-block" data-correct="1">
+        <div class="q-text">1. Which dunder method makes <code>print(obj)</code> show something readable?</div>
+        <button class="opt-btn"><code>__init__</code></button>
+        <button class="opt-btn"><code>__repr__</code> / <code>__str__</code></button>
+        <button class="opt-btn"><code>__add__</code></button>
+        <button class="opt-btn"><code>__call__</code></button>
+        <div class="q-explain">Correct answer: __repr__ / __str__. Without one, printing an object shows a default memory-address style message.</div>
+      </div>
+      <div class="q-block" data-correct="2">
+        <div class="q-text">2. A <code>@classmethod</code> used as an alternative constructor receives:</div>
+        <button class="opt-btn">Nothing at all</button>
+        <button class="opt-btn"><code>self</code>, the instance</button>
+        <button class="opt-btn"><code>cls</code>, the class itself</button>
+        <button class="opt-btn">Only keyword arguments</button>
+        <div class="q-explain">Correct answer: cls. That's what lets it call <code>cls(...)</code> to build and return a new instance.</div>
+      </div>
+      <div class="q-block" data-correct="0">
+        <div class="q-text">3. "A <code>Car</code> has an <code>Engine</code>" is an example of:</div>
+        <button class="opt-btn">Composition</button>
+        <button class="opt-btn">Inheritance</button>
+        <button class="opt-btn">Polymorphism</button>
+        <button class="opt-btn">Encapsulation</button>
+        <div class="q-explain">Correct answer: composition — Car holds an Engine object rather than inheriting from it.</div>
+      </div>
+      <div class="q-block" data-correct="3">
+        <div class="q-text">4. What does <code>@staticmethod</code> NOT receive automatically?</div>
+        <button class="opt-btn">Arguments in general</button>
+        <button class="opt-btn">Return values</button>
+        <button class="opt-btn">Decorators</button>
+        <button class="opt-btn"><code>self</code> or <code>cls</code></button>
+        <div class="q-explain">Correct answer: self or cls. It behaves like a plain function that's just namespaced inside the class.</div>
+      </div>
+      <button class="quiz-submit" onclick="submitQuiz(3,4)">Submit answers</button>
+      <div class="quiz-result" id="result3"></div>
+    </div>
+  </section>
+
+  <!-- ============ MODULE 4 ============ -->
+  <section class="module locked" id="mod4">
+    <div class="mod-head">
+      <span class="mod-num">04</span>
+      <h2 class="mod-title">Mastery — Beyond the Basics</h2>
+      <span class="mod-tag">Expert</span>
+    </div>
+    <p class="mod-desc">Multiple inheritance, the Method Resolution Order, and a first taste of design patterns.</p>
+
+    <h3 class="section-h">Multiple inheritance &amp; MRO</h3>
+    <p>A class can inherit from more than one parent. Python resolves method lookup order using the <strong>C3 linearization algorithm</strong>, exposed as the Method Resolution Order (<code>ClassName.__mro__</code>).</p>
+    <pre class="code"><span class="kw">class</span> <span class="cls">Swimmer</span>:
+    <span class="kw">def</span> <span class="fn">move</span>(self): <span class="kw">return</span> <span class="str">"swims"</span>
+
+<span class="kw">class</span> <span class="cls">Walker</span>:
+    <span class="kw">def</span> <span class="fn">move</span>(self): <span class="kw">return</span> <span class="str">"walks"</span>
+
+<span class="kw">class</span> <span class="cls">Duck</span>(Swimmer, Walker):
+    <span class="kw">pass</span>
+
+<span class="kw">print</span>(Duck().move())      <span class="cm"># "swims" — Swimmer is checked first</span>
+<span class="kw">print</span>(Duck.__mro__)      <span class="cm"># (Duck, Swimmer, Walker, object)</span></pre>
+    <div class="analogy"><div class="icon">🗺️</div><div><strong>Analogy:</strong> MRO is a search order, like checking your own desk drawer, then your left neighbor's, then your right neighbor's, in a fixed sequence — the first drawer with the file wins, and everyone agrees on the order in advance so there's no ambiguity.</div></div>
+
+    <h3 class="section-h"><code>super()</code> and cooperative inheritance</h3>
+    <pre class="code"><span class="kw">class</span> <span class="cls">Employee</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, name):
+        self.name = name
+
+<span class="kw">class</span> <span class="cls">Manager</span>(Employee):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, name, team_size):
+        <span class="fn">super</span>().__init__(name)      <span class="cm"># delegate to the parent's __init__</span>
+        self.team_size = team_size</pre>
+
+    <h3 class="section-h">A first design pattern: the Observer</h3>
+    <p>Design patterns are reusable OOP solutions to recurring problems. The <strong>Observer pattern</strong> lets objects subscribe to notifications from another object — the backbone of GUI events and pub/sub systems.</p>
+    <pre class="code"><span class="kw">class</span> <span class="cls">NewsPublisher</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self): self.subscribers = []
+    <span class="kw">def</span> <span class="fn">subscribe</span>(self, fn): self.subscribers.append(fn)
+    <span class="kw">def</span> <span class="fn">publish</span>(self, headline):
+        <span class="kw">for</span> notify <span class="kw">in</span> self.subscribers:
+            notify(headline)
+
+publisher = NewsPublisher()
+publisher.subscribe(<span class="kw">lambda</span> h: <span class="kw">print</span>(<span class="str">f"Alert: {h}"</span>))
+publisher.publish(<span class="str">"OOP tutorial complete!"</span>)</pre>
+
+    <div class="compare">
+      <div class="col a"><h4>Single inheritance</h4><p class="dim">One parent. Predictable, simple MRO.</p></div>
+      <div class="col b"><h4>Multiple inheritance</h4><p class="dim">Several parents. Powerful but needs care — watch for the "diamond problem," which MRO resolves deterministically.</p></div>
+    </div>
+
+    <div class="misconception">
+      <div class="lbl">Common misconception</div>
+      "Multiple inheritance is unsafe and unpredictable in Python." It's actually deterministic — the MRO gives a single, well-defined lookup order — but it's still good practice to keep hierarchies shallow and prefer mixins with narrow, focused responsibilities.
+    </div>
+
+    <div class="widget">
+      <div class="lbl">Try it: predict the MRO</div>
+      <p class="dim" style="margin:0 0 10px;font-size:13.5px;">Given <code>class Duck(Swimmer, Walker): pass</code>, which class's <code>move()</code> runs first?</p>
+      <button class="btn-sm" onclick="document.getElementById('w4out').textContent='→ Swimmer.move() runs — Python checks parents left to right: Duck, Swimmer, Walker, object'">Reveal MRO order</button>
+      <div class="out" id="w4out">→ click to reveal</div>
+    </div>
+
+    <div class="exercise">
+      <div class="lbl">Practical exercise</div>
+      <p>Create <code>Flyer</code> and <code>Swimmer</code> mixins, then a <code>Duck(Flyer, Swimmer)</code> class that uses <code>super().__init__()</code> cooperatively for setup.</p>
+      <textarea placeholder="class Flyer:&#10;    def fly(self): return 'flying'"></textarea>
+      <button class="reveal-btn" onclick="this.nextElementSibling.classList.toggle('show')">Show a model solution</button>
+      <div class="solution">
+        <pre class="code"><span class="kw">class</span> <span class="cls">Flyer</span>:
+    <span class="kw">def</span> <span class="fn">fly</span>(self): <span class="kw">return</span> <span class="str">"flying"</span>
+
+<span class="kw">class</span> <span class="cls">Swimmer</span>:
+    <span class="kw">def</span> <span class="fn">swim</span>(self): <span class="kw">return</span> <span class="str">"swimming"</span>
+
+<span class="kw">class</span> <span class="cls">Duck</span>(Flyer, Swimmer):
+    <span class="kw">def</span> <span class="fn">show_skills</span>(self):
+        <span class="kw">return</span> <span class="str">f"{self.fly()} and {self.swim()}"</span></pre>
+      </div>
+    </div>
+
+    <div class="takeaways">
+      <h3 class="section-h" style="margin-top:0;">Key takeaways</h3>
+      <ul>
+        <li>MRO gives a deterministic order for method lookup in multiple inheritance</li>
+        <li><code>super()</code> delegates to the next class in the MRO, not just "the parent"</li>
+        <li>Design patterns like Observer are OOP principles applied to recurring real problems</li>
+      </ul>
+    </div>
+
+    <div class="quiz" id="quiz4">
+      <div class="q-block" data-correct="2">
+        <div class="q-text">1. What does <code>Duck.__mro__</code> give you?</div>
+        <button class="opt-btn">A list of Duck's instance attributes</button>
+        <button class="opt-btn">The memory address of Duck</button>
+        <button class="opt-btn">The deterministic order Python searches for methods</button>
+        <button class="opt-btn">A list of unimplemented abstract methods</button>
+        <div class="q-explain">Correct answer: it's the Method Resolution Order — the exact sequence of classes checked for an attribute or method.</div>
+      </div>
+      <div class="q-block" data-correct="0">
+        <div class="q-text">2. In <code>class Duck(Swimmer, Walker)</code>, which parent is checked first for a shared method name?</div>
+        <button class="opt-btn">Swimmer, since it's listed first</button>
+        <button class="opt-btn">Walker, since it's listed second</button>
+        <button class="opt-btn">Whichever was defined first in the file</button>
+        <button class="opt-btn">It's randomized each run</button>
+        <div class="q-explain">Correct answer: Swimmer — parent order in the class definition determines MRO priority, left to right.</div>
+      </div>
+      <div class="q-block" data-correct="1">
+        <div class="q-text">3. What does <code>super().__init__(name)</code> do inside <code>Manager.__init__</code>?</div>
+        <button class="opt-btn">Creates a brand-new Employee object</button>
+        <button class="opt-btn">Delegates initialization to the next class in the MRO</button>
+        <button class="opt-btn">Deletes the parent's __init__</button>
+        <button class="opt-btn">Has no effect unless overridden</button>
+        <div class="q-explain">Correct answer: it delegates to the next class in the MRO, letting Manager reuse Employee's setup logic.</div>
+      </div>
+      <div class="q-block" data-correct="3">
+        <div class="q-text">4. What problem does the Observer pattern primarily solve?</div>
+        <button class="opt-btn">Making class attributes private</button>
+        <button class="opt-btn">Resolving diamond inheritance</button>
+        <button class="opt-btn">Speeding up method calls</button>
+        <button class="opt-btn">Notifying subscribed objects when something changes</button>
+        <div class="q-explain">Correct answer: it lets a subject notify a list of subscribers automatically — the basis for events and pub/sub systems.</div>
+      </div>
+      <button class="quiz-submit" onclick="submitQuiz(4,4)">Submit answers</button>
+      <div class="quiz-result" id="result4"></div>
+    </div>
+  </section>
+
+  <!-- ============ FINAL ============ -->
+  <section class="final locked" id="final">
+    <h2 class="mod-title" style="margin-bottom:8px;">Final Practical Challenge</h2>
+    <p class="mod-desc">Bring every pillar together in one design.</p>
+    <div class="exercise">
+      <div class="lbl">Challenge</div>
+      <p>Design a small library system: an abstract <code>Media</code> base class (ABC) with <code>describe()</code>, subclasses <code>Book</code> and <code>DVD</code> that override it (polymorphism), a <code>Library</code> class that <em>has a</em> list of Media (composition), private tracking of checked-out items (encapsulation via <code>_checked_out</code>), and a <code>__len__</code> dunder method so <code>len(library)</code> returns the item count.</p>
+      <textarea placeholder="Sketch your full solution here..."></textarea>
+      <button class="reveal-btn" onclick="this.nextElementSibling.classList.toggle('show')">Show a model solution</button>
+      <div class="solution">
+        <pre class="code"><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="cls">Media</span>(ABC):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, title): self.title = title
+    <span class="kw">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">describe</span>(self): ...
+
+<span class="kw">class</span> <span class="cls">Book</span>(Media):
+    <span class="kw">def</span> <span class="fn">describe</span>(self): <span class="kw">return</span> <span class="str">f"Book: {self.title}"</span>
+
+<span class="kw">class</span> <span class="cls">DVD</span>(Media):
+    <span class="kw">def</span> <span class="fn">describe</span>(self): <span class="kw">return</span> <span class="str">f"DVD: {self.title}"</span>
+
+<span class="kw">class</span> <span class="cls">Library</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self._items = []
+        self._checked_out = set()
+    <span class="kw">def</span> <span class="fn">add</span>(self, media): self._items.append(media)
+    <span class="kw">def</span> <span class="fn">__len__</span>(self): <span class="kw">return</span> len(self._items)</pre>
+      </div>
+    </div>
+
+    <h3 class="section-h">Cheat sheet</h3>
+    <div class="cheat-grid">
+      <div class="cheat-card"><h4>Syntax basics</h4><pre>class Name(Parent):
+    def __init__(self, x):
+        self.x = x
+    def method(self):
+        return self.x</pre></div>
+      <div class="cheat-card"><h4>Common dunders</h4><pre>__init__  __repr__  __str__
+__eq__    __lt__    __len__
+__add__   __call__  __iter__</pre></div>
+      <div class="cheat-card"><h4>Method types</h4><pre>def m(self): ...        # instance
+@classmethod
+def m(cls): ...          # class
+@staticmethod
+def m(): ...              # static</pre></div>
+      <div class="cheat-card"><h4>Access convention</h4><pre>self.x      # public
+self._x     # internal (convention)
+self.__x    # name-mangled</pre></div>
+    </div>
+
+    <h3 class="section-h">Summary notes</h3>
+    <div class="takeaways">
+      <ul>
+        <li>Classes are blueprints; objects are built instances with their own state</li>
+        <li>Encapsulation, inheritance, polymorphism, and abstraction are the four pillars</li>
+        <li>Dunder methods integrate your objects with Python's own syntax</li>
+        <li>Class/static methods offer alternative constructors and namespacing</li>
+        <li>Composition is often safer than deep inheritance chains</li>
+        <li>MRO makes multiple inheritance deterministic, not risky by default</li>
+      </ul>
+    </div>
+    <button class="print-btn" onclick="window.print()">🖨 Print / save notes as PDF</button>
+
+    <h3 class="section-h">Continue learning</h3>
+    <div class="resource-grid">
+      <div class="resource-card"><h4>Books</h4><ul>
+        <li>"Fluent Python" — Luciano Ramalho</li>
+        <li>"Python Object-Oriented Programming" — Steven F. Lott &amp; Dusty Phillips</li>
+        <li>"Design Patterns" — Gamma, Helm, Johnson, Vlissides (GoF)</li>
+      </ul></div>
+      <div class="resource-card"><h4>Documentation</h4><ul>
+        <li>docs.python.org — Classes tutorial</li>
+        <li>docs.python.org — <code>abc</code> module reference</li>
+        <li>docs.python.org — Data model (dunder methods)</li>
+      </ul></div>
+      <div class="resource-card"><h4>Research &amp; deep dives</h4><ul>
+        <li>Python's C3 linearization algorithm (MRO) — original spec by Barrett et al.</li>
+        <li>"A Description of the Method Resolution Order" — python.org history docs</li>
+      </ul></div>
+      <div class="resource-card"><h4>Communities</h4><ul>
+        <li>r/learnpython</li>
+        <li>Python Discord</li>
+        <li>Stack Overflow — <code>[python]</code> + <code>[oop]</code> tags</li>
+      </ul></div>
+      <div class="resource-card"><h4>Practice platforms</h4><ul>
+        <li>Exercism — Python track</li>
+        <li>LeetCode — Object-Oriented Design problems</li>
+        <li>Codewars — OOP kata</li>
+      </ul></div>
+      <div class="resource-card"><h4>AI prompts for further learning</h4><ul>
+        <li>"Explain Python's MRO with a diamond inheritance example"</li>
+        <li>"Refactor this inheritance-heavy code to use composition"</li>
+        <li>"Show me 3 real design patterns implemented in Python with tests"</li>
+      </ul></div>
+    </div>
+
+    <div class="keywords">
+      <span class="keyword">python classes tutorial</span>
+      <span class="keyword">dunder methods explained</span>
+      <span class="keyword">python MRO diamond problem</span>
+      <span class="keyword">composition vs inheritance python</span>
+      <span class="keyword">abstract base class python</span>
+    </div>
+  </section>
+
+  <footer>Interactive Learning Studio — built for one focused sitting, not a roadmap.</footer>
+</div>
+
+<script>
+let xp = 0;
+const totalQuizzes = 4;
+let passedCount = 0;
+
+function updateProgress(){
+  document.getElementById('xpBadge').textContent = xp + ' XP';
+  document.getElementById('progressFill').style.width = (passedCount/totalQuizzes*100) + '%';
+}
+
+function submitQuiz(n, count){
+  const quiz = document.getElementById('quiz'+n);
+  const blocks = quiz.querySelectorAll('.q-block');
+  let correct = 0;
+  let allAnswered = true;
+
+  blocks.forEach(block=>{
+    const chosen = block.getAttribute('data-chosen');
+    if(chosen === null){ allAnswered = false; }
+  });
+
+  if(!allAnswered){
+    alert('Please answer all questions before submitting.');
+    return;
+  }
+
+  blocks.forEach(block=>{
+    const correctIdx = parseInt(block.getAttribute('data-correct'));
+    const chosenIdx = parseInt(block.getAttribute('data-chosen'));
+    const btns = block.querySelectorAll('.opt-btn');
+    btns.forEach((b,i)=>{
+      b.disabled = true;
+      if(i===correctIdx) b.classList.add('correct');
+      else if(i===chosenIdx) b.classList.add('incorrect');
+    });
+    block.querySelector('.q-explain').classList.add('show');
+    if(chosenIdx===correctIdx) correct++;
+  });
+
+  const pct = Math.round(correct/count*100);
+  const resultEl = document.getElementById('result'+n);
+  resultEl.classList.add('show');
+  quiz.querySelector('.quiz-submit').disabled = true;
+
+  if(pct >= 75){
+    xp += correct*25;
+    passedCount++;
+    resultEl.classList.add('pass');
+    resultEl.innerHTML = `<strong>Passed!</strong> You scored ${correct}/${count} (${pct}%). Module ${n} complete — +${correct*25} XP.`;
+    const nextMod = document.getElementById('mod'+(n+1)) || document.getElementById('final');
+    if(nextMod){
+      const btn = document.createElement('button');
+      btn.className='unlock-btn';
+      btn.textContent = n<4 ? 'Unlock Module '+(n+1)+' →' : 'Unlock Final Challenge →';
+      btn.onclick = ()=>{ nextMod.classList.remove('locked'); nextMod.scrollIntoView({behavior:'smooth'}); };
+      resultEl.appendChild(document.createElement('br'));
+      resultEl.appendChild(btn);
+    }
+  } else {
+    xp += correct*10;
+    resultEl.classList.add('fail');
+    resultEl.innerHTML = `<strong>Almost there.</strong> You scored ${correct}/${count} (${pct}%). Review the explanations above, then continue when ready.`;
+    const nextMod = document.getElementById('mod'+(n+1)) || document.getElementById('final');
+    if(nextMod){
+      const btn = document.createElement('button');
+      btn.className='unlock-btn';
+      btn.textContent = 'Continue anyway →';
+      btn.onclick = ()=>{ nextMod.classList.remove('locked'); nextMod.scrollIntoView({behavior:'smooth'}); };
+      resultEl.appendChild(document.createElement('br'));
+      resultEl.appendChild(btn);
+    }
+  }
+  updateProgress();
+}
+
+document.querySelectorAll('.q-block').forEach(block=>{
+  block.querySelectorAll('.opt-btn').forEach((btn,i)=>{
+    btn.addEventListener('click', ()=>{
+      if(btn.disabled) return;
+      block.querySelectorAll('.opt-btn').forEach(b=>b.style.background='');
+      block.setAttribute('data-chosen', i);
+      block.querySelectorAll('.opt-btn').forEach(b=>b.style.borderColor='');
+      btn.style.borderColor = 'var(--cyan)';
+    });
+  });
+});
+
+function runW1(){
+  const name = document.getElementById('w1name').value || 'Rex';
+  const breed = document.getElementById('w1breed').value || 'Labrador';
+  document.getElementById('w1out').textContent = `→ Dog(name="${name}", breed="${breed}") built. ${name}.bark() → "${name} says Woof!"`;
+}
+
+function runW3(){
+  const a = document.getElementById('w3a').value.split(',').map(Number);
+  const b = document.getElementById('w3b').value.split(',').map(Number);
+  if(a.length<2||b.length<2||a.some(isNaN)||b.some(isNaN)){
+    document.getElementById('w3out').textContent = '→ enter valid numbers like 1,2';
+    return;
+  }
+  const rx = a[0]+b[0], ry = a[1]+b[1];
+  document.getElementById('w3out').textContent = `→ Vector(${a[0]}, ${a[1]}) + Vector(${b[0]}, ${b[1]}) = Vector(${rx}, ${ry})`;
+}
+
+updateProgress();
+</script>
+</body>
+</html>
