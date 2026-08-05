@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Workflow Architect — SaaS MVP Build Pipeline</title>
+<style>
+  :root{
+    --bg:#0b0f14;
+    --bg-alt:#0f151c;
+    --panel:#121a22;
+    --panel-raised:#16202a;
+    --line:#22323f;
+    --line-soft:#1a2530;
+    --ink:#dce8ef;
+    --ink-dim:#8ba3b3;
+    --ink-faint:#5a7387;
+    --accent:#3fd7c4;
+    --accent-dim:#2a8f83;
+    --amber:#f2a13d;
+    --amber-dim:#b5791f;
+    --danger:#e2645a;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+    --sans: -apple-system, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+    --radius: 3px;
+  }
+  html.light{
+    --bg:#eef2f4;
+    --bg-alt:#e6ebee;
+    --panel:#ffffff;
+    --panel-raised:#f7f9fa;
+    --line:#cdd8de;
+    --line-soft:#dbe3e8;
+    --ink:#0f1a22;
+    --ink-dim:#405663;
+    --ink-faint:#7488;
+    --accent:#0f9a89;
+    --accent-dim:#0c7568;
+    --amber:#b5721c;
+    --amber-dim:#8a5714;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;}
+  ::selection{background:var(--accent);color:#04110f;}
+  a{color:var(--accent);}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px;}
+
+  /* Blueprint grid background */
+  .grid-bg{
+    position:fixed;inset:0;z-index:-1;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size:48px 48px;
+    opacity:.35;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+  }
+
+  header.top{
+    position:sticky;top:0;z-index:50;
+    background:color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;letter-spacing:.02em;color:var(--ink-dim);}
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);}
+  .brand b{color:var(--ink);font-weight:600;}
+  .top-actions{display:flex;gap:8px;align-items:center;}
+  .btn{
+    font-family:var(--mono);font-size:12px;padding:8px 12px;border-radius:var(--radius);
+    border:1px solid var(--line);background:var(--panel);color:var(--ink-dim);cursor:pointer;
+    transition:.15s ease;
+  }
+  .btn:hover{border-color:var(--accent-dim);color:var(--ink);}
+  .btn.primary{background:var(--accent);color:#04110f;border-color:var(--accent);font-weight:600;}
+  .btn.primary:hover{background:var(--accent-dim);}
+  .btn.small{padding:5px 9px;font-size:11px;}
+
+  /* HERO */
+  .hero{padding:64px 0 40px;border-bottom:1px solid var(--line);}
+  .eyebrow{font-family:var(--mono);font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:.14em;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--accent);}
+  h1{font-size:clamp(32px,4.4vw,52px);line-height:1.05;margin:0 0 16px;font-weight:700;letter-spacing:-.01em;}
+  h1 span{color:var(--accent);}
+  .hero p.lead{font-size:16px;color:var(--ink-dim);max-width:640px;margin:0 0 28px;}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:28px;font-family:var(--mono);font-size:12px;color:var(--ink-faint);}
+  .hero-meta div span{display:block;color:var(--ink);font-size:15px;font-family:var(--sans);font-weight:600;margin-top:2px;}
+
+  .progress-shell{margin-top:32px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:16px 18px;}
+  .progress-shell .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-family:var(--mono);font-size:12px;color:var(--ink-dim);}
+  .progress-track{height:6px;background:var(--line-soft);border-radius:4px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent-dim),var(--accent));width:0%;transition:width .4s ease;}
+
+  /* NAV STRIP */
+  nav.stage-nav{position:sticky;top:53px;z-index:40;background:var(--bg);border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap;}
+  nav.stage-nav .wrap{display:flex;gap:4px;padding:0 24px;}
+  nav.stage-nav button{
+    flex:none;font-family:var(--mono);font-size:12px;padding:12px 14px;background:none;border:none;color:var(--ink-faint);cursor:pointer;
+    border-bottom:2px solid transparent;transition:.15s;
+  }
+  nav.stage-nav button:hover{color:var(--ink);}
+  nav.stage-nav button.active{color:var(--accent);border-bottom-color:var(--accent);}
+  nav.stage-nav button .n{opacity:.6;margin-right:6px;}
+  nav.stage-nav button.done::after{content:"✓";margin-left:6px;color:var(--accent);}
+
+  section.section{padding:56px 0;border-bottom:1px solid var(--line);}
+  section.section:last-of-type{border-bottom:none;}
+  .section-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;flex-wrap:wrap;gap:16px;}
+  .section-head h2{font-size:26px;margin:0 0 6px;font-weight:700;}
+  .section-head .tag{font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;}
+  .section-head p{color:var(--ink-dim);margin:0;max-width:560px;font-size:14px;}
+
+  /* STAGE PIPELINE DIAGRAM */
+  .pipeline{display:flex;gap:0;overflow-x:auto;padding:8px 0 20px;margin-bottom:8px;}
+  .pipe-node{flex:1 0 130px;min-width:130px;position:relative;padding:14px 16px 14px 0;cursor:pointer;}
+  .pipe-node:not(:last-child)::after{
+    content:"";position:absolute;top:24px;right:0;width:100%;height:1px;background:repeating-linear-gradient(90deg,var(--line) 0 6px, transparent 6px 10px);
+  }
+  .pipe-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);background:var(--panel);margin-bottom:10px;transition:.2s;position:relative;z-index:2;}
+  .pipe-node.active .pipe-dot{border-color:var(--accent);background:var(--accent);box-shadow:0 0 10px var(--accent);}
+  .pipe-node.complete .pipe-dot{border-color:var(--accent-dim);background:var(--accent-dim);}
+  .pipe-label{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em;}
+  .pipe-node.active .pipe-label{color:var(--accent);}
+  .pipe-title{font-size:13px;color:var(--ink-dim);margin-top:2px;}
+  .pipe-node.active .pipe-title{color:var(--ink);font-weight:600;}
+
+  /* STAGE CARD */
+  .stage-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:32px;display:none;}
+  .stage-card.active{display:block;}
+  .stage-top{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--line-soft);}
+  .stage-top h3{font-size:24px;margin:0 0 8px;}
+  .stage-top .stage-num{font-family:var(--mono);color:var(--accent);font-size:13px;}
+  .stage-time{font-family:var(--mono);font-size:12px;background:var(--panel-raised);border:1px solid var(--line);padding:6px 12px;border-radius:var(--radius);color:var(--amber);white-space:nowrap;height:fit-content;}
+  .stage-check{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--ink-dim);cursor:pointer;user-select:none;}
+  .stage-check input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:28px;}
+  @media(max-width:800px){.grid-2{grid-template-columns:1fr;}}
+
+  .block-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-faint);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .block-label::before{content:"";width:14px;height:1px;background:var(--ink-faint);}
+  ul.clean{list-style:none;margin:0;padding:0;}
+  ul.clean li{padding:7px 0 7px 20px;position:relative;font-size:14px;color:var(--ink);border-bottom:1px dashed var(--line-soft);}
+  ul.clean li:last-child{border-bottom:none;}
+  ul.clean li::before{content:"—";position:absolute;left:0;color:var(--ink-faint);}
+
+  .tool-list{display:flex;flex-direction:column;gap:10px;}
+  .tool{background:var(--panel-raised);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;}
+  .tool-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .tool-name{font-weight:700;font-size:14px;}
+  .tool-badge{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(63,215,196,.12);color:var(--accent);border:1px solid var(--accent-dim);}
+  .tool-why{font-size:13px;color:var(--ink-dim);margin:0 0 6px;}
+  .tool-alt{font-size:12px;color:var(--ink-faint);font-family:var(--mono);}
+  .tool-alt b{color:var(--ink-dim);font-family:var(--sans);font-weight:600;}
+
+  .prompt-box{background:#050a0e;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;font-family:var(--mono);font-size:12.5px;color:#a9e8dd;position:relative;margin-bottom:10px;white-space:pre-wrap;}
+  html.light .prompt-box{background:#0d1520;}
+  .copy-btn{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:10px;background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);padding:3px 8px;border-radius:2px;cursor:pointer;}
+  .copy-btn:hover{color:var(--accent);border-color:var(--accent-dim);}
+
+  .two-col-lists{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:28px;}
+  @media(max-width:800px){.two-col-lists{grid-template-columns:1fr;}}
+  .mistake-list li::before{content:"✕";color:var(--danger);}
+  .practice-list li::before{content:"✓";color:var(--accent);}
+
+  .output-strip{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;}
+  .output-chip{font-family:var(--mono);font-size:11.5px;background:var(--panel-raised);border:1px solid var(--line);padding:6px 10px;border-radius:20px;color:var(--ink-dim);}
+
+  .notes-area{margin-top:8px;}
+  textarea.stage-notes{width:100%;min-height:80px;background:var(--panel-raised);border:1px solid var(--line);border-radius:var(--radius);color:var(--ink);font-family:var(--sans);font-size:13px;padding:10px 12px;resize:vertical;}
+  textarea.stage-notes:focus{outline:none;border-color:var(--accent-dim);}
+  .stage-footer-nav{display:flex;justify-content:space-between;margin-top:28px;}
+
+  /* Comparison table */
+  table.compare{width:100%;border-collapse:collapse;font-size:13px;}
+  table.compare th, table.compare td{border:1px solid var(--line);padding:10px 12px;text-align:left;}
+  table.compare th{background:var(--panel-raised);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-dim);}
+  table.compare td{color:var(--ink);}
+  table.compare tr:hover td{background:var(--panel-raised);}
+  .rank{font-family:var(--mono);color:var(--accent);}
+
+  /* Decision tree */
+  .tree{display:flex;flex-direction:column;gap:10px;}
+  .tree-q{background:var(--panel-raised);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;}
+  .tree-q .q{font-weight:600;margin-bottom:10px;font-size:14px;}
+  .tree-opts{display:flex;gap:10px;flex-wrap:wrap;}
+  .tree-opt{font-family:var(--mono);font-size:12px;padding:8px 12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);cursor:pointer;color:var(--ink-dim);}
+  .tree-opt:hover{border-color:var(--accent-dim);color:var(--ink);}
+  .tree-result{margin-top:10px;padding:12px 14px;background:rgba(63,215,196,.08);border:1px solid var(--accent-dim);border-radius:var(--radius);font-size:13px;display:none;}
+  .tree-result.show{display:block;}
+
+  /* Bookmarks */
+  .bookmark-btn{background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:16px;padding:2px 6px;}
+  .bookmark-btn.active{color:var(--amber);}
+  #bookmarksPanel{position:fixed;right:0;top:0;height:100%;width:320px;background:var(--panel);border-left:1px solid var(--line);z-index:80;transform:translateX(100%);transition:.25s ease;padding:20px;overflow-y:auto;}
+  #bookmarksPanel.open{transform:translateX(0);}
+  #bookmarksPanel h4{margin-top:0;font-family:var(--mono);font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);}
+  .bm-item{padding:10px 0;border-bottom:1px solid var(--line-soft);font-size:13px;}
+  .bm-item small{display:block;color:var(--ink-faint);font-family:var(--mono);margin-top:3px;}
+  #overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:70;display:none;}
+  #overlay.show{display:block;}
+
+  footer.finale{padding:64px 0 90px;}
+  .finale-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;}
+  @media(max-width:800px){.finale-grid{grid-template-columns:1fr;}}
+  .finale-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;}
+  .finale-card h4{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 16px;}
+  .stack-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line-soft);font-size:13.5px;}
+  .stack-item:last-child{border-bottom:none;}
+  .stack-item b{color:var(--ink);}
+  .stack-item span{color:var(--ink-faint);font-family:var(--mono);font-size:11.5px;}
+  .kw-chip{display:inline-block;font-family:var(--mono);font-size:11.5px;background:var(--panel-raised);border:1px solid var(--line);padding:5px 10px;margin:3px 4px 3px 0;border-radius:20px;color:var(--ink-dim);}
+  .link-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line-soft);font-size:13.5px;}
+  .link-row:last-child{border-bottom:none;}
+
+  @media print{
+    header.top,nav.stage-nav,.top-actions,.stage-check,.btn,#bookmarksPanel,.grid-bg{display:none!important;}
+    .stage-card{display:block!important;page-break-after:always;}
+    body{background:#fff;color:#000;}
+  }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div id="overlay" onclick="toggleBookmarks(false)"></div>
+
+<div id="bookmarksPanel">
+  <h4>Bookmarks</h4>
+  <div id="bmList"><p style="color:var(--ink-faint);font-size:13px;">No bookmarks yet. Click ☆ on any stage to save it.</p></div>
+</div>
+
+<header class="top">
+  <div class="wrap topbar">
+    <div class="brand"><span class="dot"></span><b>AI Workflow Architect</b> / saas-mvp-pipeline.exe</div>
+    <div class="top-actions">
+      <button class="btn small" onclick="toggleBookmarks(true)">☆ Bookmarks</button>
+      <button class="btn small" onclick="window.print()">Print Guide</button>
+      <button class="btn small" id="themeBtn" onclick="toggleTheme()">☾ Dark</button>
+      <button class="btn small primary" onclick="resetProgress()">Reset</button>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Software Development / Full-Stack / SaaS Product</div>
+    <h1>Idea to Launch: <span>SaaS MVP</span> Build Workflow</h1>
+    <p class="lead">A complete, end-to-end execution pipeline for shipping a SaaS MVP — not general advice, but the actual stage-by-stage path from validating an idea to your first paying customers, with the AI tools, prompts, and decisions mapped at each step.</p>
+    <div class="hero-meta">
+      <div>Stages<span>8</span></div>
+      <div>Est. Total Time<span>6–10 weeks</span></div>
+      <div>Team Size<span>1–3 people</span></div>
+      <div>Primary Stack<span>React · Node · Postgres</span></div>
+    </div>
+    <div class="progress-shell">
+      <div class="row"><span>WORKFLOW PROGRESS</span><span id="progressLabel">0 / 8 stages complete</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+  </div>
+</div>
+
+<nav class="stage-nav">
+  <div class="wrap" id="stageNav"></div>
+</nav>
+
+<section class="section" style="padding-top:40px;">
+  <div class="wrap">
+    <div class="section-head">
+      <div><span class="tag">Overview</span><h2>Pipeline Map</h2></div>
+      <p>Click any node to jump to that stage. Completed stages are marked once you check them off below.</p>
+    </div>
+    <div class="pipeline" id="pipelineDiagram"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap" id="stageContainer"></div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div><span class="tag">Decision Support</span><h2>Which Path Fits Your MVP?</h2></div>
+      <p>A quick decision tree to route you to the right tool choices before you commit time to a stack.</p>
+    </div>
+    <div class="tree" id="decisionTree"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div><span class="tag">Comparison</span><h2>Core AI Tools, Side by Side</h2></div>
+      <p>The tools that appear across multiple stages, compared on the dimensions that matter for a solo or small team building fast.</p>
+    </div>
+    <table class="compare">
+      <thead><tr><th>Tool</th><th>Best For</th><th>Learning Curve</th><th>Cost (typical MVP use)</th><th>Where It Fits</th></tr></thead>
+      <tbody id="compareBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<footer class="finale">
+  <div class="wrap">
+    <div class="section-head"><div><span class="tag">Wrap-Up</span><h2>Workflow Summary & Resources</h2></div></div>
+    <div class="finale-grid">
+      <div class="finale-card">
+        <h4>Workflow Summary</h4>
+        <p style="font-size:13.5px;color:var(--ink-dim);">This pipeline takes a SaaS idea from unvalidated concept to a live product with paying users in roughly 6–10 weeks for a 1–3 person team, leaning on AI across research, design, code generation, testing, and growth. The critical path runs: validate → architect → design → build (parallel front/back) → test → ship → iterate. Most time is lost in Discovery (skipping validation) and Testing (skipping it entirely) — both are compressed but not optional in this plan.</p>
+      </div>
+      <div class="finale-card">
+        <h4>Recommended AI Stack</h4>
+        <div id="stackList"></div>
+      </div>
+      <div class="finale-card">
+        <h4>Learning Resources</h4>
+        <div id="resourceList"></div>
+      </div>
+      <div class="finale-card">
+        <h4>Communities</h4>
+        <div id="communityList"></div>
+      </div>
+      <div class="finale-card">
+        <h4>Search Keywords</h4>
+        <div id="keywordList"></div>
+      </div>
+      <div class="finale-card">
+        <h4>Future Automation Opportunities</h4>
+        <ul class="clean" id="automationList"></ul>
+      </div>
+    </div>
+    <div class="finale-card" style="margin-top:28px;">
+      <h4>Additional AI Prompts (Cross-Stage)</h4>
+      <div id="extraPrompts"></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------------- DATA ---------------- */
+const STAGES = [
+{
+  key:"discovery", num:"01", label:"Discovery", title:"Discovery & Validation", time:"3–5 days",
+  objectives:["Confirm a real, painful problem exists for a specific audience","Size the market and identify 3–5 direct or adjacent competitors","Define a single-sentence value proposition and ICP (ideal customer profile)"],
+  tasks:["Interview or survey 8–12 target users about their current workaround","Map competitor pricing, features, and gaps","Draft a one-page lean canvas: problem, solution, unique value, channels","Write a landing page pitch and gauge signup interest before writing code"],
+  tools:[
+    {name:"Claude / ChatGPT", badge:"Research", why:"Synthesizes interview transcripts into themes, drafts landing page copy, and can role-play as a skeptical customer to pressure-test your pitch.", alt:"Perplexity for live market/competitor lookups"},
+    {name:"Perplexity", badge:"Market Scan", why:"Fast, cited web research for competitor pricing and market sizing without manually opening a dozen tabs.", alt:"Google + Exa for deeper technical searches"},
+    {name:"Typeform / Tally + AI summarizer", badge:"Surveys", why:"Collects structured user feedback; pair with Claude to cluster open-ended answers into themes in minutes.", alt:"Google Forms for a zero-cost version"}
+  ],
+  prompts:[
+    "Act as a skeptical potential customer for [product idea]. Ask me 8 hard questions that would make me hesitate to pay for this.",
+    "Summarize these 10 user interview transcripts into the 3 most common pain points, with a direct quote for each: [paste transcripts]",
+    "Write 3 versions of a one-sentence value proposition for [product] targeting [ICP], each emphasizing a different angle (speed, cost, simplicity)."
+  ],
+  practices:["Talk to users before writing a line of code","Validate willingness to pay, not just interest","Keep the ICP narrow enough to describe in one sentence"],
+  mistakes:["Building for 'everyone' instead of a specific user","Skipping competitor research and assuming a blue ocean","Treating polite interest as validated demand"],
+  outputs:["Lean canvas (1 page)","Competitor comparison sheet","Validated value proposition","Landing page with waitlist signups"]
+},
+{
+  key:"planning", num:"02", label:"Planning", title:"Planning & Architecture", time:"3–4 days",
+  objectives:["Define MVP scope with a hard line between must-have and later","Choose the technical architecture and stack","Produce a build plan with milestones and rough time estimates"],
+  tasks:["Write user stories for the core flow only (auth, core feature, billing)","Choose stack: frontend framework, backend, database, hosting","Sketch system architecture (services, data flow, third-party APIs)","Break the MVP into a 2–4 week sprint plan"],
+  tools:[
+    {name:"Claude (Opus/Sonnet)", badge:"Architecture", why:"Strong at reasoning through trade-offs between architectures and generating scoped user stories from a rough idea.", alt:"ChatGPT o-series for similar reasoning depth"},
+    {name:"Linear / Notion AI", badge:"Planning", why:"Turns a feature list into a structured backlog with estimates and can auto-generate sprint breakdowns.", alt:"Trello + Butler automations for a lighter setup"},
+    {name:"Eraser.io (AI diagrams)", badge:"Architecture Diagrams", why:"Generates system architecture and ER diagrams from a text description, which speeds up documenting the stack decision.", alt:"Whimsical AI or draw.io manually"}
+  ],
+  prompts:[
+    "Given this MVP idea: [description], propose 2 architecture options (monolith vs. modular) with trade-offs for a solo developer shipping in 6 weeks.",
+    "Convert this feature list into user stories with acceptance criteria, ranked by must-have vs. nice-to-have: [feature list]",
+    "Recommend a tech stack for a SaaS MVP with [core feature], optimizing for fastest time-to-launch and lowest infra cost. Justify each choice."
+  ],
+  practices:["Cut scope until the MVP tests only the core hypothesis","Pick boring, well-documented tech over trendy tech","Write acceptance criteria before estimating time"],
+  mistakes:["Over-engineering for scale you don't have yet","Choosing an unfamiliar stack to 'learn while building'","Skipping data modeling until mid-build"],
+  outputs:["Scoped user stories with acceptance criteria","System architecture diagram","Stack decision doc","4–6 week sprint plan"]
+},
+{
+  key:"design", num:"03", label:"Design", title:"Design & Prototyping", time:"4–6 days",
+  objectives:["Establish a coherent visual identity and design system","Produce clickable prototypes for the core user flow","Validate the flow with 3–5 target users before building"],
+  tasks:["Define design tokens: color, type, spacing, components","Wireframe the core flow (onboarding, main feature, billing)","Build a clickable prototype and run quick usability checks","Prepare handoff assets (specs, component states) for development"],
+  tools:[
+    {name:"Figma + Figma AI / First Draft", badge:"UI Design", why:"Generates first-pass layouts from a text prompt and remains the industry standard for handoff-ready specs.", alt:"Framer AI for design that ships as a live site directly"},
+    {name:"Uizard", badge:"Rapid Wireframes", why:"Turns rough sketches or text prompts into wireframes fast, useful for non-designers scoping screens quickly.", alt:"Galileo AI for higher-fidelity first drafts"},
+    {name:"v0 by Vercel", badge:"Design-to-Code", why:"Generates production-ready React + Tailwind components directly from prompts or screenshots, shortening the design-to-dev gap.", alt:"Claude with the frontend-design approach for custom component code"}
+  ],
+  prompts:[
+    "Design a clean SaaS onboarding flow (3 screens) for [product], audience [ICP], using a [minimal/bold/playful] visual style. Describe each screen's layout and key elements.",
+    "Generate a design token set (colors, type scale, spacing) for a B2B SaaS dashboard that should feel trustworthy but not generic corporate.",
+    "Critique this onboarding flow for friction points a first-time user would hit: [describe or paste screens]."
+  ],
+  practices:["Design the empty, loading, and error states, not just the happy path","Test the prototype with real target users before coding","Keep the design system small enough to hold in your head"],
+  mistakes:["Polishing visuals before the flow is validated","Designing for desktop only and retrofitting mobile","Skipping error and empty states until launch week"],
+  outputs:["Design system (tokens + components)","Clickable prototype","Usability test notes","Dev-ready specs"]
+},
+{
+  key:"frontend", num:"04", label:"Frontend", title:"Frontend Development", time:"1.5–2 weeks",
+  objectives:["Build the core UI flows to spec with responsive, accessible markup","Wire the frontend to backend APIs and handle auth state","Ship a performant, production-quality client"],
+  tasks:["Scaffold the app (routing, state management, design system integration)","Implement core screens from the prototype","Connect to backend APIs and handle loading/error/empty states","Add responsive behavior, accessibility passes, and basic analytics events"],
+  tools:[
+    {name:"Claude Code / Cursor", badge:"AI Pair-Programmer", why:"Handles multi-file edits, understands your existing codebase context, and can implement a full component from a design spec in one pass.", alt:"GitHub Copilot for inline, lighter-weight suggestions"},
+    {name:"v0 by Vercel", badge:"Component Generation", why:"Converts the Figma handoff or a screenshot into working React/Tailwind code, cutting boilerplate time significantly.", alt:"Locofy.ai for Figma-to-code with more design fidelity"},
+    {name:"Storybook + AI test generation", badge:"Component QA", why:"Isolates components for visual testing; pairing with AI to generate story variants catches edge cases early.", alt:"Chromatic for automated visual regression"}
+  ],
+  prompts:[
+    "Implement this component from the attached design spec using React and Tailwind. Include loading, empty, and error states: [spec/screenshot]",
+    "Refactor this component to be accessible: proper ARIA labels, keyboard navigation, and focus states. [paste component]",
+    "Write unit tests for this form component covering validation, submit, and error states: [paste component]"
+  ],
+  practices:["Build one flow end-to-end before starting the next","Keep components small and state colocated where possible","Instrument key actions with analytics from day one"],
+  mistakes:["Building every screen before wiring any to real data","Ignoring accessibility until a user complains","Letting AI-generated code merge without a read-through"],
+  outputs:["Responsive core app UI","API-connected auth and main flows","Component library in Storybook","Analytics events on key actions"]
+},
+{
+  key:"backend", num:"05", label:"Backend", title:"Backend & Infrastructure", time:"1.5–2 weeks",
+  objectives:["Build a secure, documented API for the core feature and auth","Set up the database schema and billing integration","Establish hosting, CI/CD, and basic monitoring"],
+  tasks:["Design and implement the database schema","Build REST/GraphQL endpoints for core resources and auth","Integrate payments (subscriptions) and webhooks","Set up CI/CD, environment configs, logging, and error tracking"],
+  tools:[
+    {name:"Claude Code / Cursor", badge:"AI Pair-Programmer", why:"Generates endpoint implementations, migrations, and tests together, keeping API and schema changes consistent across files.", alt:"GitHub Copilot Workspace for issue-to-PR flows"},
+    {name:"Supabase / Neon + AI SQL assistant", badge:"Database", why:"Managed Postgres with instant APIs and built-in auth removes weeks of backend scaffolding for an MVP.", alt:"PlanetScale for a MySQL-based managed alternative"},
+    {name:"Stripe + Claude for webhook logic", badge:"Billing", why:"Stripe handles subscription billing reliably; AI accelerates writing and testing the webhook handlers that sync billing state.", alt:"Paddle for merchant-of-record simplicity (handles global tax)"}
+  ],
+  prompts:[
+    "Design a normalized Postgres schema for [core entities], including indexes for the most common queries this app will run.",
+    "Implement a Stripe subscription webhook handler in Node.js that updates user plan status and handles failed payments gracefully.",
+    "Review this API for security issues: missing auth checks, injection risk, and rate limiting gaps: [paste code]."
+  ],
+  practices:["Write migrations, not manual schema edits, from day one","Rate-limit and validate every public endpoint","Log errors centrally before you need them, not after an incident"],
+  mistakes:["Storing secrets in code instead of environment config","Skipping webhook idempotency, causing duplicate billing events","No staging environment, testing changes directly in production"],
+  outputs:["Documented REST/GraphQL API","Database with migrations","Working subscription billing","CI/CD pipeline with staging environment"]
+},
+{
+  key:"testing", num:"06", label:"Testing", title:"Testing & QA", time:"4–6 days",
+  objectives:["Catch functional bugs and edge cases before real users do","Validate performance and security basics","Confirm the billing and auth flows are airtight"],
+  tasks:["Write and run unit and integration tests for core flows","Run manual QA passes on auth, billing, and the core feature","Perform a basic security review and load test key endpoints","Fix bugs found and re-test the critical path end-to-end"],
+  tools:[
+    {name:"Claude Code / Cursor", badge:"Test Generation", why:"Generates test suites from existing code, including edge cases a developer under deadline pressure tends to skip.", alt:"GitHub Copilot for inline test stub suggestions"},
+    {name:"Playwright + AI test authoring", badge:"E2E Testing", why:"Automates full user-flow testing (signup → core action → billing) in a real browser, catching integration issues unit tests miss.", alt:"Cypress for a more visual, debugger-friendly alternative"},
+    {name:"Snyk / AI code review bots", badge:"Security", why:"Scans dependencies and code for known vulnerabilities automatically on every commit, cheap insurance before launch.", alt:"Semgrep for custom rule-based static analysis"}
+  ],
+  prompts:[
+    "Write Playwright end-to-end tests for this signup-to-subscription flow, including failure cases like a declined card: [describe flow]",
+    "Given this API code, list edge cases and error conditions I haven't handled: [paste code]",
+    "Review this authentication implementation for common security mistakes (session handling, password storage, rate limiting)."
+  ],
+  practices:["Test the unhappy paths, not just the demo path","Automate the critical-path test so it runs on every deploy","Fix, don't just log, the bugs found before launch"],
+  mistakes:["Testing only on your own machine and browser","Treating QA as optional under launch deadline pressure","No test coverage on the billing flow specifically"],
+  outputs:["Automated test suite for critical paths","Security scan report","Load test results on core endpoints","Bug-free critical path (signup → core action → billing)"]
+},
+{
+  key:"launch", num:"07", label:"Launch", title:"Launch & Deployment", time:"3–5 days",
+  objectives:["Deploy to production reliably with rollback capability","Prepare go-to-market assets for launch day","Get the first cohort of real users into the product"],
+  tasks:["Deploy to production with monitoring and alerting live","Prepare launch assets: landing page, demo video, launch posts","Execute the launch across chosen channels (Product Hunt, communities, email list)","Onboard the first users and watch for early friction in real time"],
+  tools:[
+    {name:"Vercel / Railway / Render", badge:"Deployment", why:"Zero-config deployment with preview environments and rollbacks, ideal for a small team shipping fast without dedicated DevOps.", alt:"Fly.io for more control over regions and infra"},
+    {name:"Claude / ChatGPT", badge:"Launch Copy", why:"Drafts Product Hunt copy, launch tweets, and demo video scripts quickly, then iterates on tone from feedback.", alt:"Copy.ai for templated variations at volume"},
+    {name:"PostHog / Sentry", badge:"Monitoring", why:"Captures product analytics and errors from minute one of launch, so you see real friction instead of guessing.", alt:"Mixpanel + LogRocket for a split analytics/session-replay setup"}
+  ],
+  prompts:[
+    "Write a Product Hunt launch post for [product], highlighting the core value in the first two sentences, in a direct and non-salesy tone.",
+    "Draft a 60-second demo video script for [product] that shows the core action within the first 10 seconds.",
+    "Write 5 launch day tweets/posts for [product], each testing a different angle (problem-first, result-first, story-first, contrarian, social proof)."
+  ],
+  practices:["Have a rollback plan tested before you need it","Watch monitoring dashboards actively on launch day","Personally onboard your first 10–20 users"],
+  mistakes:["Launching without error monitoring wired up","Going silent after the initial launch post","No plan for a spike in signups overwhelming support"],
+  outputs:["Live production deployment","Launch assets (page, video, posts)","First user cohort onboarded","Monitoring dashboards live"]
+},
+{
+  key:"growth", num:"08", label:"Growth", title:"Post-Launch Growth & Iteration", time:"Ongoing",
+  objectives:["Establish a feedback loop from real usage to the roadmap","Improve activation and retention based on data","Build a repeatable acquisition channel"],
+  tasks:["Review analytics weekly for drop-off points in the core flow","Collect and triage user feedback into a prioritized backlog","Run small experiments on onboarding and pricing","Systematize the acquisition channel that's working"],
+  tools:[
+    {name:"PostHog + AI insights", badge:"Product Analytics", why:"Surfaces funnel drop-off and session replays automatically, and AI summaries speed up spotting the pattern in the noise.", alt:"Amplitude for deeper cohort analysis at scale"},
+    {name:"Claude / ChatGPT", badge:"Feedback Synthesis", why:"Clusters support tickets and feedback into themes and drafts prioritized changes, keeping the backlog grounded in real usage.", alt:"Canny for structured public feedback collection"},
+    {name:"Zapier / n8n (AI-assisted)", badge:"Automation", why:"Automates repetitive ops (onboarding emails, ticket routing, churn alerts) once patterns are clear, freeing founder time for building.", alt:"Make.com for more visual, complex automation flows"}
+  ],
+  prompts:[
+    "Analyze this funnel data and identify the single biggest drop-off point, then suggest 3 hypotheses for why users are leaving there: [paste data]",
+    "Cluster this batch of user feedback into themes ranked by frequency and severity: [paste feedback]",
+    "Propose a 2-week experiment plan to improve activation rate for [specific step], including the metric to watch and success threshold."
+  ],
+  practices:["Ship small, measurable changes rather than big rewrites","Talk to churned users, not just active ones","Automate only what's proven to be a repeated bottleneck"],
+  mistakes:["Building requested features without checking if they move a real metric","Ignoring churn signals until MRR drops","Scaling acquisition spend before retention is solid"],
+  outputs:["Weekly analytics review cadence","Prioritized, evidence-based backlog","Documented onboarding/pricing experiments","One systematized acquisition channel"]
+}
+];
+
+const TIPS = {
+  discovery:"Batch your user interviews into 2 days max — momentum fades fast and delayed research quietly turns into delayed launch.",
+  planning:"Time-box architecture decisions to a single session. A good-enough decision made today beats a perfect one made in a week.",
+  design:"Reuse an existing component library (shadcn/ui, Radix) as your base rather than designing every primitive from scratch.",
+  frontend:"Let AI generate the first draft of every component, then spend your time reviewing and refining — not typing boilerplate.",
+  backend:"Use a managed Postgres + auth provider (Supabase/Neon) to skip 1–2 weeks of infrastructure you don't need to own yet.",
+  testing:"Automate only the critical path (signup → core action → billing) fully; hand-test the rest to save time before launch.",
+  launch:"Pre-write your launch day responses to common questions so you're not drafting under pressure while traffic spikes.",
+  growth:"Set a recurring 30-minute weekly slot to review analytics — irregular reviews are the main reason feedback loops die."
+};
+
+const COMPARE = [
+  {tool:"Claude (Sonnet/Opus)", best:"Reasoning, architecture, multi-file code, writing", curve:"Low", cost:"$20/mo (Pro) or API usage", fits:"Discovery, Planning, Frontend, Backend, Testing, Growth"},
+  {tool:"Cursor / Claude Code", best:"In-editor AI pair programming across a real codebase", curve:"Low–Medium", cost:"$20/mo", fits:"Frontend, Backend, Testing"},
+  {tool:"v0 by Vercel", best:"Design-to-code for React/Tailwind components", curve:"Low", cost:"Free tier, then usage-based", fits:"Design, Frontend"},
+  {tool:"Figma (+ AI features)", best:"Design systems and dev handoff", curve:"Medium", cost:"Free–$15/mo", fits:"Design"},
+  {tool:"Supabase / Neon", best:"Managed Postgres with instant auth/APIs", curve:"Low", cost:"Free tier, then ~$25/mo", fits:"Backend"},
+  {tool:"Playwright", best:"Automated end-to-end browser testing", curve:"Medium", cost:"Free (open source)", fits:"Testing"},
+  {tool:"PostHog", best:"Product analytics, session replay, feature flags", curve:"Low", cost:"Free tier, then usage-based", fits:"Launch, Growth"}
+];
+
+const STACK = [
+  {name:"Claude (Pro/API)", role:"Reasoning, code, writing, research"},
+  {name:"Cursor or Claude Code", role:"In-editor implementation"},
+  {name:"Figma + v0", role:"Design and design-to-code"},
+  {name:"Supabase or Neon", role:"Database, auth, storage"},
+  {name:"Stripe", role:"Billing and subscriptions"},
+  {name:"Vercel or Railway", role:"Hosting and deployment"},
+  {name:"Playwright", role:"End-to-end testing"},
+  {name:"PostHog + Sentry", role:"Analytics, monitoring, error tracking"}
+];
+
+const RESOURCES = [
+  {title:"Y Combinator Startup Library", url:"https://www.ycombinator.com/library"},
+  {title:"Supabase Docs", url:"https://supabase.com/docs"},
+  {title:"Stripe Billing Docs", url:"https://stripe.com/docs/billing"},
+  {title:"Playwright Docs", url:"https://playwright.dev/"}
+];
+const COMMUNITIES = [
+  {title:"Indie Hackers", url:"https://www.indiehackers.com/"},
+  {title:"r/SaaS", url:"https://www.reddit.com/r/SaaS/"},
+  {title:"Product Hunt Makers", url:"https://www.producthunt.com/"},
+  {title:"WIP.co", url:"https://wip.co/"}
+];
+const KEYWORDS = ["saas mvp checklist","lean canvas template","ai pair programming workflow","stripe subscription webhook tutorial","figma to react ai","postgres schema design saas","product hunt launch guide","user interview questions template"];
+
+const AUTOMATION = [
+  "Auto-generate weekly analytics summaries and email them to the team using AI + a scheduled workflow",
+  "Route and auto-tag incoming support tickets by theme before a human reviews them",
+  "Auto-draft release notes from merged pull requests using AI summarization",
+  "Trigger churn-risk alerts when usage patterns match historical churned users",
+  "Auto-generate onboarding email sequences personalized to a user's signup context"
+];
+
+const EXTRA_PROMPTS = [
+  "Given my current MVP scope, what's the single feature I could cut without hurting the core value proposition?",
+  "Act as a technical co-founder reviewing my architecture doc. What's the biggest risk you see in this plan?",
+  "Write a founder update email summarizing this week's progress, blockers, and next week's plan, for early investors or advisors.",
+  "I have limited hours per week. Given this backlog, sequence the next 10 tasks to maximize learning velocity, not just feature count."
+];
+
+const DECISION_TREE = [
+  {q:"Do you already have a validated problem and paying-intent signal?",
+   opts:[
+     {label:"Yes, validated", result:"Skip most of Discovery — move straight to a lightweight Planning pass and start building this week."},
+     {label:"No, still an idea", result:"Spend 3–5 days on Discovery first. Building before validation is the most common reason MVPs stall."}
+   ]},
+  {q:"Do you have frontend + backend coverage on the team (or comfort with AI-assisted full-stack work)?",
+   opts:[
+     {label:"Yes", result:"Use a single AI pair-programmer (Cursor/Claude Code) across the whole stack for consistency and speed."},
+     {label:"No, frontend-only / backend-only", result:"Lean harder on a managed backend (Supabase) or a design-to-code tool (v0) to cover your gap without hiring yet."}
+   ]},
+  {q:"Is billing/subscriptions core to the MVP from day one?",
+   opts:[
+     {label:"Yes", result:"Integrate Stripe in the Backend stage, not after launch — retrofitting billing later delays real revenue validation."},
+     {label:"No, free tier first", result:"Defer Stripe integration to post-launch once you've validated engagement; focus Backend stage on the core feature only."}
+   ]}
+];
+
+/* ---------------- STATE ---------------- */
+let state = JSON.parse(localStorage.getItem('awa_state') || '{}');
+state.completed = state.completed || {};
+state.notes = state.notes || {};
+state.bookmarks = state.bookmarks || {};
+state.theme = state.theme || 'dark';
+let activeStage = state.activeStage || STAGES[0].key;
+
+function saveState(){ localStorage.setItem('awa_state', JSON.stringify(state)); }
+
+/* ---------------- RENDER NAV + PIPELINE ---------------- */
+function renderNav(){
+  const nav = document.getElementById('stageNav');
+  nav.innerHTML = STAGES.map(s => `
+    <button data-key="${s.key}" class="${activeStage===s.key?'active':''} ${state.completed[s.key]?'done':''}" onclick="setActive('${s.key}')">
+      <span class="n">${s.num}</span>${s.label}
+    </button>`).join('');
+}
+function renderPipeline(){
+  const el = document.getElementById('pipelineDiagram');
+  el.innerHTML = STAGES.map(s => `
+    <div class="pipe-node ${activeStage===s.key?'active':''} ${state.completed[s.key]?'complete':''}" onclick="setActive('${s.key}')">
+      <div class="pipe-dot"></div>
+      <div class="pipe-label">${s.num}</div>
+      <div class="pipe-title">${s.label}</div>
+    </div>`).join('');
+}
+function renderProgress(){
+  const total = STAGES.length;
+  const done = Object.values(state.completed).filter(Boolean).length;
+  document.getElementById('progressLabel').textContent = `${done} / ${total} stages complete`;
+  document.getElementById('progressFill').style.width = (done/total*100)+'%';
+}
+
+/* ---------------- RENDER STAGES ---------------- */
+function renderStages(){
+  const container = document.getElementById('stageContainer');
+  container.innerHTML = STAGES.map((s, i) => `
+    <div class="stage-card ${activeStage===s.key?'active':''}" id="card-${s.key}">
+      <div class="stage-top">
+        <div>
+          <div class="stage-num">STAGE ${s.num} / 08</div>
+          <h3>${s.title} <button class="bookmark-btn ${state.bookmarks[s.key]?'active':''}" onclick="toggleBookmark('${s.key}')" title="Bookmark this stage">${state.bookmarks[s.key]?'★':'☆'}</button></h3>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <div class="stage-time">⏱ ${s.time}</div>
+          <label class="stage-check"><input type="checkbox" ${state.completed[s.key]?'checked':''} onchange="toggleComplete('${s.key}', this.checked)"> Mark complete</label>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <div class="block-label">Objectives</div>
+          <ul class="clean">${s.objectives.map(o=>`<li>${o}</li>`).join('')}</ul>
+        </div>
+        <div>
+          <div class="block-label">Tasks</div>
+          <ul class="clean">${s.tasks.map(t=>`<li>${t}</li>`).join('')}</ul>
+        </div>
+      </div>
+
+      <div class="block-label">Best AI Tools For This Stage</div>
+      <div class="tool-list" style="margin-bottom:28px;">
+        ${s.tools.map(t=>`
+          <div class="tool">
+            <div class="tool-head"><span class="tool-name">${t.name}</span><span class="tool-badge">${t.badge}</span></div>
+            <p class="tool-why">${t.why}</p>
+            <div class="tool-alt"><b>Alternative:</b> ${t.alt}</div>
+          </div>`).join('')}
+      </div>
+
+      <div class="block-label">Prompt Examples</div>
+      <div style="margin-bottom:28px;">
+        ${s.prompts.map((p,idx)=>`
+          <div class="prompt-box">${escapeHtml(p)}<button class="copy-btn" onclick="copyPrompt(this)">Copy</button></div>`).join('')}
+      </div>
+
+      <div class="two-col-lists">
+        <div>
+          <div class="block-label">Best Practices</div>
+          <ul class="clean practice-list">${s.practices.map(p=>`<li>${p}</li>`).join('')}</ul>
+        </div>
+        <div>
+          <div class="block-label">Common Mistakes</div>
+          <ul class="clean mistake-list">${s.mistakes.map(m=>`<li>${m}</li>`).join('')}</ul>
+        </div>
+      </div>
+
+      <div class="block-label">Expected Outputs</div>
+      <div class="output-strip">${s.outputs.map(o=>`<span class="output-chip">${o}</span>`).join('')}</div>
+
+      <div class="block-label">Efficiency Tip</div>
+      <p style="font-size:13.5px;color:var(--amber);margin:0 0 24px;">💡 ${TIPS[s.key]}</p>
+
+      <div class="notes-area">
+        <div class="block-label">Your Notes</div>
+        <textarea class="stage-notes" placeholder="Jot down decisions, blockers, or reminders for this stage..." oninput="saveNote('${s.key}', this.value)">${state.notes[s.key]||''}</textarea>
+      </div>
+
+      <div class="stage-footer-nav">
+        ${i>0 ? `<button class="btn" onclick="setActive('${STAGES[i-1].key}')">← ${STAGES[i-1].label}</button>` : '<span></span>'}
+        ${i<STAGES.length-1 ? `<button class="btn primary" onclick="setActive('${STAGES[i+1].key}')">${STAGES[i+1].label} →</button>` : '<span></span>'}
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str){
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ---------------- ACTIONS ---------------- */
+function setActive(key){
+  activeStage = key;
+  state.activeStage = key;
+  saveState();
+  renderNav();
+  renderPipeline();
+  document.querySelectorAll('.stage-card').forEach(c=>c.classList.remove('active'));
+  document.getElementById('card-'+key).classList.add('active');
+  document.getElementById('card-'+key).scrollIntoView({behavior:'smooth', block:'start'});
+}
+function toggleComplete(key, val){
+  state.completed[key] = val;
+  saveState();
+  renderNav(); renderPipeline(); renderProgress();
+}
+function saveNote(key, val){
+  state.notes[key] = val;
+  saveState();
+}
+function toggleBookmark(key){
+  state.bookmarks[key] = !state.bookmarks[key];
+  saveState();
+  renderStages();
+  setActive(key);
+  renderBookmarks();
+}
+function renderBookmarks(){
+  const list = document.getElementById('bmList');
+  const keys = Object.keys(state.bookmarks).filter(k=>state.bookmarks[k]);
+  if(!keys.length){ list.innerHTML = '<p style="color:var(--ink-faint);font-size:13px;">No bookmarks yet. Click ☆ on any stage to save it.</p>'; return; }
+  list.innerHTML = keys.map(k=>{
+    const s = STAGES.find(x=>x.key===k);
+    return `<div class="bm-item">${s.title}<small onclick="setActive('${k}')" style="cursor:pointer;color:var(--accent);">Jump to stage →</small></div>`;
+  }).join('');
+}
+function toggleBookmarks(open){
+  document.getElementById('bookmarksPanel').classList.toggle('open', open);
+  document.getElementById('overlay').classList.toggle('show', open);
+}
+function copyPrompt(btn){
+  const text = btn.parentElement.textContent.replace('Copy','').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent = 'Copied ✓';
+    setTimeout(()=>btn.textContent='Copy', 1500);
+  });
+}
+function resetProgress(){
+  if(!confirm('Reset all progress, notes, and bookmarks?')) return;
+  state = {completed:{}, notes:{}, bookmarks:{}, theme: state.theme, activeStage: STAGES[0].key};
+  activeStage = STAGES[0].key;
+  saveState();
+  renderAll();
+}
+function toggleTheme(){
+  document.documentElement.classList.toggle('light');
+  state.theme = document.documentElement.classList.contains('light') ? 'light':'dark';
+  document.getElementById('themeBtn').textContent = state.theme==='light' ? '☀ Light' : '☾ Dark';
+  saveState();
+}
+
+/* ---------------- STATIC SECTIONS ---------------- */
+function renderCompare(){
+  document.getElementById('compareBody').innerHTML = COMPARE.map((c,i)=>`
+    <tr><td class="rank">#${i+1}</td><td><b>${c.tool}</b></td><td>${c.best}</td><td>${c.curve}</td><td>${c.cost}</td><td>${c.fits}</td></tr>
+  `.replace('<td class="rank">#'+(i+1)+'</td><td>','<td class="rank">#'+(i+1)+'</td>')).join('');
+  // fix column mismatch (rank col not in header) -> simpler rebuild:
+  document.getElementById('compareBody').innerHTML = COMPARE.map(c=>`
+    <tr><td><b>${c.tool}</b></td><td>${c.best}</td><td>${c.curve}</td><td>${c.cost}</td><td>${c.fits}</td></tr>
+  `).join('');
+}
+function renderFinale(){
+  document.getElementById('stackList').innerHTML = STACK.map(s=>`<div class="stack-item"><b>${s.name}</b><span>${s.role}</span></div>`).join('');
+  document.getElementById('resourceList').innerHTML = RESOURCES.map(r=>`<div class="link-row"><a href="${r.url}" target="_blank" rel="noopener">${r.title}</a></div>`).join('');
+  document.getElementById('communityList').innerHTML = COMMUNITIES.map(r=>`<div class="link-row"><a href="${r.url}" target="_blank" rel="noopener">${r.title}</a></div>`).join('');
+  document.getElementById('keywordList').innerHTML = KEYWORDS.map(k=>`<span class="kw-chip">${k}</span>`).join('');
+  document.getElementById('automationList').innerHTML = AUTOMATION.map(a=>`<li>${a}</li>`).join('');
+  document.getElementById('extraPrompts').innerHTML = EXTRA_PROMPTS.map(p=>`<div class="prompt-box">${escapeHtml(p)}<button class="copy-btn" onclick="copyPrompt(this)">Copy</button></div>`).join('');
+}
+function renderTree(){
+  document.getElementById('decisionTree').innerHTML = DECISION_TREE.map((t,idx)=>`
+    <div class="tree-q">
+      <div class="q">${idx+1}. ${t.q}</div>
+      <div class="tree-opts">
+        ${t.opts.map((o,oi)=>`<button class="tree-opt" onclick="showTreeResult(${idx},${oi})">${o.label}</button>`).join('')}
+      </div>
+      <div class="tree-result" id="tree-result-${idx}"></div>
+    </div>
+  `).join('');
+}
+function showTreeResult(qi, oi){
+  const el = document.getElementById('tree-result-'+qi);
+  el.textContent = DECISION_TREE[qi].opts[oi].result;
+  el.classList.add('show');
+}
+
+/* ---------------- INIT ---------------- */
+function renderAll(){
+  renderNav(); renderPipeline(); renderProgress(); renderStages();
+  renderBookmarks(); renderCompare(); renderFinale(); renderTree();
+}
+if(state.theme==='light'){ document.documentElement.classList.add('light'); }
+document.getElementById('themeBtn').textContent = state.theme==='light' ? '☀ Light' : '☾ Dark';
+renderAll();
+</script>
+</body>
+</html>
